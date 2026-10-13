@@ -75,7 +75,7 @@ The kakapo has **3 hearts** per run (top left). He loses:
 | Hitting the canopy with your head (flying up into it) | 1 heart |
 | Bumping into the side of a hanging canopy mass | nothing (knock-back) |
 | Hitting an island from below | nothing (bounce) |
-| Landing after a long free fall (≥ 80 px, a quarter of the screen) | 1 heart |
+| Landing after a long free fall (≥ 100 px, almost a third of the screen) | 1 heart |
 | Touching a burning island (he bounces off with hot feet; no resting there) | 1 heart |
 | Falling into the river | all hearts |
 | A leaping shark, a lunging eel, a giant wave or a waterspout | all hearts |
@@ -113,7 +113,7 @@ Everything lives in **`js/config.js`** — no magic numbers elsewhere. The ones 
 | `mic.constraints` | AEC on, NS/AGC off | AGC off keeps loudness meaningful; echo cancellation keeps sound effects out of the mic. |
 | `lives.max` | 3 | Hearts per run. |
 | `lives.invulnerable` | 1.5 s | Blinking immunity after losing a heart. |
-| `lives.hardFallHeight` | 80 px | Free-fall height that hurts on landing (playfield is 320 px tall). |
+| `lives.hardFallHeight` | 100 px | Free-fall height that hurts on landing (playfield is 320 px tall). |
 | `lives.warnFraction` | 0.75 | When the “!” warning appears, as a fraction of `hardFallHeight`. |
 | `ceiling.*` | — | Canopy maze: chances of clearings and hanging masses, how low they hang, clearance kept above islands. |
 | `hazards.enabled` | true | Turns sharks, waves, waterspouts and burning islands on/off. |
@@ -200,7 +200,7 @@ The game is made to be played **with the camera on**: when you tap Play it asks 
 
 ## Run video and sharing
 
-Every run is recorded (Settings → *Save a video of each run*): the finished screen — your face, the forest and the kakapo — plus the sound: your squeaks from the microphone mixed with the game's effects. It's a vertical video (up to 1280 px tall, 30 fps, max 3 min), made with `canvas.captureStream()` + `MediaRecorder` (`js/capture/recorder.js`).
+Every run is recorded (Settings → *Save a video of each run*): the finished screen — your face, the forest and the kakapo — plus the sound: your squeaks from the microphone mixed with the game's effects. It's a light vertical video (720 px tall, 24 fps, ~0.8 Mbit/s video + 48 kbit/s audio ≈ 0.1 MB per second, so a short run is a few hundred KB; max 3 min; tune with `recording.maxHeight` / `videoBps`), made with `canvas.captureStream()` + `MediaRecorder` (`js/capture/recorder.js`).
 
 Recording quietly continues for **5 seconds after the kakapo dies** (`recording.afterDeathSec`) to catch your reaction. Your voice is mixed in louder than the game's sounds (`recording.voiceGain`). Then the results screen plays the clip and offers **Share video** (the phone's share sheet: WhatsApp, Instagram, TikTok…, via the Web Share API) and **Save video** (download). The video lives only in memory on the device; it is replaced by the next run and never uploaded unless you share it.
 

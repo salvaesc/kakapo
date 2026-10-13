@@ -93,7 +93,7 @@ export const CONFIG = {
   lives: {
     max: 3,               // hearts per run
     invulnerable: 1.5,    // seconds of blinking immunity after losing a heart
-    hardFallHeight: 80,   // landing after free-falling this many px (from the highest point
+    hardFallHeight: 100,  // landing after free-falling this many px (from the highest point
                           // since the bird last went up) costs a heart. A quarter of the playfield.
     warnFraction: 0.75,   // show the "!" warning over the bird from this fraction of hardFallHeight
   },
@@ -155,9 +155,10 @@ export const CONFIG = {
 
   // Video of each run (screen + your voice + game sounds), for sharing at the end
   recording: {
-    fps: 30,
-    maxHeight: 1280,      // the video is scaled down to this height (vertical, phone-shaped)
-    videoBps: 3500000,
+    fps: 24,
+    maxHeight: 720,       // the video is scaled down to this height (vertical, phone-shaped)
+    videoBps: 800000,     // ~0.1 MB per second of video: light enough to share
+    audioBps: 48000,
     maxSeconds: 180,      // longer runs stop recording here
     afterDeathSec: 5,     // keeps recording this long after dying, to catch the reaction
     voiceGain: 1.8,       // your voice in the video, relative to the game's sound effects

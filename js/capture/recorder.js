@@ -61,7 +61,7 @@ export class Recorder {
     try {
       const stream = this.canvas.captureStream(C.fps);
       for (const t of audioTracks) if (t && t.readyState === 'live') stream.addTrack(t);
-      this.rec = new MediaRecorder(stream, { mimeType: this.mime, videoBitsPerSecond: C.videoBps, audioBitsPerSecond: 96000 });
+      this.rec = new MediaRecorder(stream, { mimeType: this.mime, videoBitsPerSecond: C.videoBps, audioBitsPerSecond: C.audioBps });
     } catch {
       this.state = 'failed';
       return false;
