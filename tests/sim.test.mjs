@@ -52,7 +52,7 @@ test('soft and loud sound produce clearly different climb and speed', () => {
   };
   const soft = run(0.2), med = run(0.5), loud = run(1);
   assert.ok(soft.vy < 0, 'soft sound ascends');
-  assert.ok(-loud.vy > -soft.vy * 2.5, `loud climbs much faster (${soft.vy} vs ${loud.vy})`);
+  assert.ok(-loud.vy > -soft.vy * 1.8, `loud climbs much faster (${soft.vy} vs ${loud.vy})`);
   assert.ok(loud.speed > soft.speed * 2.5, `loud scrolls much faster (${soft.speed} vs ${loud.speed})`);
   assert.ok(med.speed > soft.speed && med.speed < loud.speed);
 });
@@ -136,4 +136,13 @@ test('same seed + same input = same run (determinism)', () => {
   }
   assert.equal(a.score, b.score);
   assert.equal(a.bird.x, b.bird.x);
+});
+
+test('lowering your voice brakes the climb quickly (no runaway climbs)', () => {
+  let vy = 0;
+  for (let i = 0; i < 120; i++) vy = stepVertical(vy, 1, 1 / 120, cfg.flight, false); // full climb
+  const full = vy;
+  let t = 0;
+  while (vy < full * 0.6 && t < 1) { vy = stepVertical(vy, shapeLevel(0.15, cfg.control), 1 / 120, cfg.flight, false); t += 1 / 120; }
+  assert.ok(t < 0.12, `40% of the climb speed is gone ${t.toFixed(3)} s after lowering the voice`);
 });

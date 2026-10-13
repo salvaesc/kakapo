@@ -82,6 +82,9 @@ export class UI {
     bind('btnResMenu', () => this.h.toMenu());
     for (const id of ['btnMuteHud', 'btnMuteMenu']) bind(id, () => this.h.toggleMute());
     bind('btnSettings', () => this.h.settings());
+    bind('btnCalibGo', () => this.h.calibGo());
+    bind('btnCalibSkip', () => this.h.calibSkip());
+    bind('btnSetMic', () => this.h.nextMic());
     bind('btnSetCamera', () => this.h.toggleCamera());
     bind('btnSetRecord', () => this.h.toggleRecord());
     bind('btnSetSound', () => this.h.toggleMute());
@@ -135,7 +138,13 @@ export class UI {
   }
 
   /** Settings screen state. */
-  setSettings(cam, recorder, muted) {
+  setSettings(cam, recorder, muted, mic, micNote) {
+    if (mic) {
+      const label = mic.on ? (mic.deviceLabel || 'default') : 'not on yet';
+      $('btnSetMic').textContent = `Microphone: ${label.length > 26 ? label.slice(0, 25) + '…' : label}`;
+      $('btnSetMic').disabled = !mic.on;
+      $('micNote').textContent = micNote || (mic.on ? 'Tap to switch (e.g. AirPods ↔ phone mic).' : 'Start a game to choose a microphone.');
+    }
     const camOn = cam.wanted;
     const cb = $('btnSetCamera');
     cb.textContent = `Camera background: ${camOn ? 'ON' : 'OFF'}`;
@@ -158,7 +167,7 @@ export class UI {
   }
 
   /** Results: the run's video. state: 'off' | 'preparing' | 'ready' | 'failed'. */
-  setVideo(state, url = '', canShare = false) {
+  setVideo(state, url = '', canShare = false, secondsLeft = 0) {
     const box = $('resVideoBox');
     box.classList.toggle('hidden', state === 'off');
     const v = $('resVideo');
@@ -173,7 +182,9 @@ export class UI {
       v.removeAttribute('src');
       v.load();
       v.classList.add('hidden');
-      note.textContent = state === 'preparing' ? 'Preparing your video…' : state === 'failed' ? 'The video could not be saved this time.' : '';
+      note.textContent = state === 'reaction' ? `● REC — still recording your reaction… ${secondsLeft}`
+        : state === 'preparing' ? 'Preparing your video…' : state === 'failed' ? 'The video could not be saved this time.' : '';
+      note.classList.toggle('rec', state === 'reaction');
     }
   }
 
@@ -195,18 +206,45 @@ export class UI {
     this.show('micError');
   }
 
-  calib(step, progress, level, note) {
-    const C = {
-      quiet: ['Shhh…', 'Stay quiet for a moment while we listen to the room.'],
-      loud: ['Now: “AAAAH!”', 'Make a long, loud sound — like you’re cheering the kakapo on.'],
-      normal: ['Say “aaaah”', 'In your normal voice. This is the pitch that does NOT fly.'],
-      high: ['Now squeak! “iiiiii!”', 'As high as you can, like a tiny bird. That’s full speed.'],
-    }[step] || ['Calibrating…', ''];
-    $('calibTitle').textContent = C[0];
-    $('calibText').textContent = C[1];
-    $('calibProgress').style.width = Math.round(progress * 100) + '%';
-    $('calibMeter').style.width = Math.round(Math.min(1, level) * 100) + '%';
-    if (note) $('calibNote').textContent = note;
+  /**
+   * Guided calibration screen.
+   * v: { step: 0..4 (0 = intro), title, text, status, statusKind, note, progress 0..1,
+   *      hearing 0..1, pitchNow, pitchNormal, zoneFrom, zoneTo (all 0..1 or null),
+   *      showViz, go (button label or null), skip (bool) }
+   */
+  calibView(v) {
+    for (let i = 1; i <= 4; i++) {
+      const li = $('cs' + i);
+      li.classList.toggle('active', v.step === i);
+      li.classList.toggle('done', v.step > i);
+    }
+    $('calibTitle').textContent = v.title;
+    $('calibText').textContent = v.text || '';
+    const st = $('calibStatus');
+    st.textContent = v.status || '';
+    st.className = 'calib-status ' + (v.statusKind || '');
+    $('calibNote').textContent = v.note || '';
+    $('calibProgress').style.width = Math.round(Math.max(0, Math.min(1, v.progress || 0)) * 100) + '%';
+    $('calibViz').classList.toggle('hidden', !v.showViz);
+    $('calibMeter').style.width = Math.round(Math.max(0, Math.min(1, v.hearing || 0)) * 100) + '%';
+    const mark = (id, x) => {
+      const el = $(id);
+      el.style.display = x == null ? 'none' : 'block';
+      if (x != null) el.style.left = (Math.max(0, Math.min(1, x)) * 100) + '%';
+    };
+    $('pitchRow').classList.toggle('hidden', !v.showPitch);
+    mark('pitchNow', v.pitchNow);
+    mark('pitchNormal', v.pitchNormal);
+    const z = $('pitchZone');
+    if (v.zoneFrom != null) {
+      z.style.display = 'block';
+      z.style.left = (v.zoneFrom * 100) + '%';
+      z.style.width = (Math.max(0, (v.zoneTo ?? 1) - v.zoneFrom) * 100) + '%';
+    } else z.style.display = 'none';
+    const go = $('btnCalibGo');
+    go.classList.toggle('hidden', !v.go);
+    if (v.go) go.textContent = v.go;
+    $('btnCalibSkip').classList.toggle('hidden', !v.skip);
   }
 
   hint(text, seconds = 0) {

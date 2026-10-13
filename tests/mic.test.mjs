@@ -20,31 +20,32 @@ test('calibration: floor from quiet, range from loud', () => {
   const quiet = Array.from({ length: 80 }, (_, i) => -62 + (i % 5)); // -62..-58
   const loud = Array.from({ length: 80 }, () => -20);
   const cal = computeCalibration(quiet, loud, M);
-  assert.ok(cal.floorDb >= -59 && cal.floorDb <= -58);
+  assert.ok(cal.floorDb >= -61 && cal.floorDb <= -59, `floor ${cal.floorDb}`);
   assert.ok(cal.loudOk);
   // ambient noise maps to 0
   assert.equal(dbToLevel(-60, cal), 0);
-  // the loud calibration sample maps near headroom
-  assert.ok(Math.abs(dbToLevel(-20, cal) - M.loudHeadroom) < 0.02);
-  assert.equal(dbToLevel(0, cal), 1);
+  // your calibration shout is full speed; a softer aaah is slower; talking-level sound barely moves
+  assert.ok(dbToLevel(-20, cal) > 0.99);
+  const span = -20 - cal.floorDb - cal.marginDb;
+  assert.ok(dbToLevel(cal.floorDb + cal.marginDb + span * 0.5, cal) < 0.6, 'a softer aaah is slower');
+  assert.equal(dbToLevel(cal.floorDb + cal.marginDb - 1, cal), 0, 'below the shout threshold: nothing');
 });
 
 test('calibration falls back to default range if the loud step was too quiet', () => {
   const quiet = Array(50).fill(-50);
-  const loud = Array(50).fill(-47);
+  const loud = Array(50).fill(-40);
   const cal = computeCalibration(quiet, loud, M);
   assert.equal(cal.loudOk, false);
   assert.equal(cal.rangeDb, M.defaultRangeDb);
 });
 
-test('smoothing: fast attack, slower release, stable', () => {
+test('smoothing: responds within a few frames both ways (stopping is quickest)', () => {
   let v = 0;
   for (let i = 0; i < 6; i++) v = smoothLevel(v, 1, 1 / 60, M.attack, M.release);
   const afterAttack = v;
   for (let i = 0; i < 6; i++) v = smoothLevel(v, 0, 1 / 60, M.attack, M.release);
-  assert.ok(afterAttack > 0.6, `attack ${afterAttack}`);
-  assert.ok(v > 0.25, `release is gentler (${v})`);
-  assert.ok(v < afterAttack);
+  assert.ok(afterAttack > 0.7, `attack ${afterAttack}`);
+  assert.ok(v < 0.15, `release is quick (${v})`);
 });
 
 // ---------- pitch ----------
@@ -105,4 +106,13 @@ test('pitch calibration falls back sensibly when nothing was heard', () => {
   const cal = computePitchCalibration(defaultCalibration(cfgM), [0, 0, 0], [0, 0], cfgM);
   assert.equal(cal.pitchOk, false);
   assert.ok(Math.abs(semitones(cal.lowHz, cal.highHz) - cfgM.pitch.defaultRange) < 1e-6);
+});
+
+test('a word or a bump during the quiet step does not make the game deaf', () => {
+  // 2.5 s at 60 fps: room at -60 dB, with 0.6 s of the player talking (-25 dB) in the middle
+  const quiet = Array.from({ length: 150 }, (_, i) => (i > 50 && i < 86 ? -25 : -60));
+  const cal = computeCalibration(quiet, null, M);
+  assert.ok(cal.floorDb < -55, `floor stays at the room's level (${cal.floorDb})`);
+  // so a normal voice (-35 dB) is still heard
+  assert.ok(-35 > cal.floorDb + cal.marginDb);
 });

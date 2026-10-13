@@ -2,7 +2,7 @@
 
 *Squeak high to fly. Stay quiet to fall.*
 
-A mobile-first, voice-controlled pixel-art platformer. A small, round, very determined kakapo discovers he can fly by making sounds: the **pitch of your voice** is an analog joystick: talking normally does nothing, a high squeak flies, and the higher you go, the higher and faster he flies. (The original loudness control is still there: `mic.mode: 'volume'`.) that controls both how fast he climbs and how fast the New Zealand forest scrolls by. Go quiet to drop onto a floating island and rest for as long as you like.
+A mobile-first, voice-controlled pixel-art platformer. A small, round, very determined kakapo discovers he can fly by making sounds: the **loudness of your voice** is an analog joystick that controls both how fast he climbs and how fast the New Zealand forest scrolls by: a loud “AAAH” is high and fast, a softer one slower, silence drops. (A pitch-based control — squeak higher to fly — is also built in: `mic.mode: 'pitch'`.) Go quiet to drop onto a floating island and rest for as long as you like.
 
 Vanilla HTML/CSS/JS (ES modules), Canvas 2D, Web Audio API. **No dependencies, no build step.**
 
@@ -31,9 +31,11 @@ Pick one:
 4. **Local HTTPS on your LAN**: create a certificate (e.g. `mkcert 192.168.1.20`), then
    `HTTPS_KEY=key.pem HTTPS_CERT=cert.pem node tools/serve.mjs` and trust the CA on the phone.
 
-On the phone: tap **Play → Allow microphone**, stay quiet for ~1.5 s, then say “aaah” in your normal voice (~2 s), then squeak as high as you can (~2 s). That's the calibration: your normal voice becomes “doesn't fly”, your squeak becomes “full speed”. Then squeak high to take off.
+On the phone: tap **Play → Allow mic & camera**, then the **calibration** (about 6 s, two steps): stay quiet for a moment, then shout a long “AAAH!”. It only advances while the game actually hears you, shows a *Hearing* bar, and explains what to check when it can't hear you. That shout becomes the kakapo's full speed; talking won't lift him.
 
 **If permission was denied:** Android Chrome → padlock icon in the address bar → *Permissions → Microphone → Allow*, then reload. iOS Safari → *aA* menu → *Website Settings → Microphone → Allow* (or Settings → Safari → Microphone).
+
+**Microphone problems (AirPods, iPhone):** the game asks for the mic and the camera in a single request (asking separately can silently mute the mic on iOS), resumes iOS's “interrupted” audio, and detects a dead input (exact digital silence) to warn you. AirPods microphones are weak: **Settings → Microphone** switches to another input (e.g. the phone's own mic); recalibrate afterwards.
 
 **Tips:** hold the phone at a normal distance; humming works as well as shouting. Use **Menu → Recalibrate mic** if you move to a noisier room. If the kakapo takes off on his own, the room is louder than during calibration — recalibrate.
 
@@ -70,14 +72,14 @@ The kakapo has **3 hearts** per run (top left). He loses:
 
 | What happens | Cost |
 |---|---|
-| Hitting the canopy: its underside or the side of a hanging mass | 1 heart |
-| Hitting an island from below | 1 heart |
+| Hitting the canopy with your head (flying up into it) | 1 heart |
+| Bumping into the side of a hanging canopy mass | nothing (knock-back) |
+| Hitting an island from below | nothing (bounce) |
 | Landing after a long free fall (≥ 80 px, a quarter of the screen) | 1 heart |
 | Touching a burning island (he bounces off with hot feet; no resting there) | 1 heart |
 | Falling into the river | all hearts |
 | A leaping shark, a lunging eel, a giant wave or a waterspout | all hearts |
 | The falcon's dive | 1 heart |
-| Hitting the side of an island | nothing (just a bonk and a knock-back) |
 
 After losing a heart he blinks for 1.5 s and can't lose another. A **“!”** over his head warns that a fall is getting long; a blinking red **“!!”** means the landing will hurt. Making a little sound brakes the fall and resets the height. With no hearts left in the air he cartwheels down, out of control; on an island he ends up flat on his back.
  Landings give bonus points, landing near the centre gives a **PERFECT** bonus, red rimu berries are +5, and every 6th island has a pōhutukawa checkpoint worth +50.
@@ -94,19 +96,20 @@ Everything lives in **`js/config.js`** — no magic numbers elsewhere. The ones 
 |---|---|---|
 | `control.deadzone` | 0.07 | Level below this counts as silence. Raise if the bird reacts to room noise. |
 | `control.curve` | 1.25 | >1 = gentler soft end, steeper loud end. |
-| `flight.minClimb` / `maxClimb` | 60 / 240 px/s | Climb speed at the softest / loudest sound. `maxClimb` is the shout cap. |
-| `flight.climbResponse` | 10.5 /s | How quickly the bird reaches the climb speed your voice asks for. |
-| `flight.gravity` / `maxFall` | 1060 / 370 | How fast silence brings him down. |
+| `flight.minClimb` / `maxClimb` | 60 / 150 px/s | Climb speed at the softest / loudest sound. `maxClimb` is the shout cap. |
+| `flight.climbResponse` / `brakeResponse` | 7.5 / 18 /s | How fast it speeds up a climb / how fast it stops climbing when your voice drops. |
+| `flight.gravity` / `maxFall` | 950 / 340 | How fast silence brings him down. |
 | `scroll.silent` / `min` / `max` | 18 / 64 / 200 px/s | World speed in silence, soft and loud sound. |
 | `scroll.accel` / `decel` | 300 / 200 px/s² | How quickly world speed follows the voice. |
-| `rest.takeoffLevel` / `takeoffHold` | 0.24 / 0.2 s | How loud, for how long, to leave a platform. |
+| `rest.takeoffLevel` / `takeoffHold` | 0.2 / 0.2 s | How loud, for how long, to leave a platform. |
 | `rest.landGrace` | 0.35 s | Takeoff is ignored right after landing (and at run start). |
-| `mic.floorMarginDb` | 6 dB | Silence threshold above the calibrated noise floor. |
-| `mic.attack` / `release` | 0.045 / 0.16 s | Signal smoothing. Longer release = less jittery, slightly floatier. |
-| `mic.mode` | `'pitch'` | `'pitch'` (higher voice = more) or `'volume'` (louder = more). |
-| `mic.pitch.aboveSpeech` | 2 st | Flying starts this many semitones above your normal voice. Raise it to force sillier squeaks. |
+| `mic.attack` / `release` | 0.07 / 0.06 s | Signal smoothing. Longer release = less jittery, slightly floatier. |
+| `mic.mode` | `'volume'` | `'volume'` (louder = more) or `'pitch'` (higher voice = more). |
+| `mic.loudHeadroom` | 1.0 | Your calibration shout is full speed; raise it (e.g. 1.3) to reach full speed with less. |
+| `mic.floorMarginDb` | 12 dB | How far above the room noise you must be to start flying: higher = shout more. |
+| `mic.pitch.aboveSpeech` | 1 st | Flying starts this many semitones above your normal voice. Raise it to force sillier squeaks. |
 | `mic.pitch.minRange` / `defaultRange` | 5 / 9 st | Semitones from “starts flying” to “full speed”. |
-| `mic.pitch.threshold` | 0.15 | Pitch-detector strictness (lower = fewer false pitches from noise). |
+| `mic.pitch.threshold` | 0.25 | Pitch-detector strictness (lower = fewer false pitches from noise). |
 | `mic.constraints` | AEC on, NS/AGC off | AGC off keeps loudness meaningful; echo cancellation keeps sound effects out of the mic. |
 | `lives.max` | 3 | Hearts per run. |
 | `lives.invulnerable` | 1.5 s | Blinking immunity after losing a heart. |
@@ -169,7 +172,7 @@ tools/sprite-preview.html        Shows every kakapo pose for art iteration
 ## Tests
 
 ```bash
-npm test             # Node unit tests (node:test, no deps) — 48 tests
+npm test             # Node unit tests (node:test, no deps) — 50 tests
 npm run test:e2e     # Browser E2E (needs: pip install playwright && python -m playwright install chromium)
 ```
 
@@ -199,7 +202,7 @@ The game is made to be played **with the camera on**: when you tap Play it asks 
 
 Every run is recorded (Settings → *Save a video of each run*): the finished screen — your face, the forest and the kakapo — plus the sound: your squeaks from the microphone mixed with the game's effects. It's a vertical video (up to 1280 px tall, 30 fps, max 3 min), made with `canvas.captureStream()` + `MediaRecorder` (`js/capture/recorder.js`).
 
-When the run ends, the results screen plays the clip and offers **Share video** (the phone's share sheet: WhatsApp, Instagram, TikTok…, via the Web Share API) and **Save video** (download). The video lives only in memory on the device; it is replaced by the next run and never uploaded unless you share it.
+Recording quietly continues for **5 seconds after the kakapo dies** (`recording.afterDeathSec`) to catch your reaction. Your voice is mixed in louder than the game's sounds (`recording.voiceGain`). Then the results screen plays the clip and offers **Share video** (the phone's share sheet: WhatsApp, Instagram, TikTok…, via the Web Share API) and **Save video** (download). The video lives only in memory on the device; it is replaced by the next run and never uploaded unless you share it.
 
 Format: MP4 where the browser can (Safari, recent Chrome), otherwise WebM. Some social apps don't accept WebM; Safari/iOS and current Android Chrome produce MP4 with H.264.
 

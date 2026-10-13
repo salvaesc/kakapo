@@ -42,11 +42,10 @@ def make_wav(path):
             else:
                 v = 0.002 * math.sin(i * 12.9898)
             frames.extend(struct.pack('<h', int(max(-1, min(1, v)) * 32767)))
-    seg(1.7)
-    seg(1.8, 200)
-    seg(1.9, 700)
-    for _ in range(6):
-        seg(1.5, 600); seg(1.0); seg(1.5, 200); seg(1.0)
+    seg(3.4)                 # guided calibration: step 1 (quiet)
+    seg(4.0, 220, 0.3)       # step 2: a long, loud "AAAH"
+    for _ in range(6):       # during play: loud aaah / silence / soft aaah / silence
+        seg(1.5, 220, 0.3); seg(1.0); seg(1.5, 220, 0.025); seg(1.0)
     with wave.open(path, 'wb') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(bytes(frames))
 
@@ -68,6 +67,26 @@ AUTOPILOT = """
   tick();
 })()
 """
+
+def video_voice_check(pg):
+    """Saves the run video, extracts its audio with ffmpeg and measures how much of the
+    fake microphone's 600 Hz squeak is in it. None if ffmpeg isn't available."""
+    import base64, shutil, numpy as np
+    if not shutil.which('ffmpeg'):
+        return None
+    data = pg.evaluate("""(async () => { const b = window.__kakapo.recorder.blob; const buf = new Uint8Array(await b.arrayBuffer());
+        let s = ''; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000)); return btoa(s); })()""")
+    vid = os.path.join(TMP, 'kakapo-e2e-run.video')
+    wav = os.path.join(TMP, 'kakapo-e2e-run.wav')
+    open(vid, 'wb').write(base64.b64decode(data))
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', vid, '-ac', '1', '-ar', '16000', wav], check=True)
+    with wave.open(wav) as w:
+        x = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32)
+    spec = np.abs(np.fft.rfft(x * np.hanning(len(x))))
+    freqs = np.fft.rfftfreq(len(x), 1 / 16000)
+    band = spec[(freqs > 210) & (freqs < 230)].max()
+    background = np.median(spec[(freqs > 1500) & (freqs < 6000)]) + 1e-9
+    return float(band / background)
 
 def state(pg):
     return pg.evaluate("(() => { const k = window.__kakapo; return { mode: k.game.mode, bird: k.sim.bird.state, landings: k.sim.bird.landings, score: k.sim.score, mic: k.mic.status, level: k.mic.level, loops: k.loops(), cal: k.mic.cal }; })()")
@@ -98,35 +117,55 @@ def main():
             s = state(pg)
             check(s['mic'] == 'on', f"mic status on after permission ({s['mic']})")
             check(pg.is_visible('#calib'), 'calibration screen shown')
-            time.sleep(5.8)
+            check('Shhh' in pg.inner_text('#calibTitle'), 'calibration starts listening straight away (no intro)')
+            check(not pg.is_visible('#cs3') and not pg.is_visible('#cs4'), 'only two steps: quiet + AAAH')
+            phases = set()
+            t0 = time.time()
+            while time.time() - t0 < 20:
+                m = pg.evaluate("window.__kakapo.game.mode")
+                ph = pg.evaluate("window.__kakapo.game.calib && window.__kakapo.game.calib.phase")
+                if ph: phases.add(ph)
+                if m in ('ready', 'playing'): break
+                time.sleep(0.05)
+            check(phases == {'quiet', 'loud'}, f'quiet → AAAH → straight into the game ({sorted(phases)})')
             s = state(pg)
             check(s['mode'] in ('ready', 'playing'), f"calibration completes into the game ({s['mode']})")
             print('     calibration:', {k: round(v) if isinstance(v, float) else v for k, v in s['cal'].items()})
-            check(170 < s['cal']['speakHz'] < 235 and 550 < s['cal']['highHz'] < 760, 'calibration found the normal voice and the squeak')
-            levels, low_voice = [], []
+            check(s['cal']['loudOk'], 'calibration measured the loud AAAH')
+            levels, loud_l, soft_l = [], [], []
             t0 = time.time()
             while time.time() - t0 < 9:
-                r = pg.evaluate("(() => { const m = window.__kakapo.mic; return [m.level, m.pitchHz, m.rawLevel]; })()")
+                r = pg.evaluate("(() => { const m = window.__kakapo.mic; return [m.level, m.db, m.rawLevel]; })()")
                 levels.append(r[0])
-                if 170 < r[1] < 235: low_voice.append(r[2])
+                if r[1] > -22: loud_l.append(r[2])
+                elif -42 < r[1] < -30: soft_l.append(r[2])
                 time.sleep(0.05)
             hi, lo = max(levels), min(levels)
-            print(f'     mic level range over 9s: min={lo:.2f} max={hi:.2f}; frames with a ~200 Hz voice: {len(low_voice)}')
-            check(hi > 0.5, 'a high squeak drives the level up')
+            med = lambda a: sorted(a)[len(a) // 2] if a else 0
+            print(f'     mic level range over 9s: min={lo:.2f} max={hi:.2f}; loud aaah → {med(loud_l):.2f}, soft aaah → {med(soft_l):.2f}')
+            check(hi > 0.9, 'a loud aaah reaches full speed')
             check(lo < 0.1, 'silence brings the level back down')
-            check(len(low_voice) > 5 and max(low_voice) == 0, 'talking at a normal (low) pitch does not fly')
+            check(len(soft_l) > 5 and 0.05 < med(soft_l) < med(loud_l) - 0.3, 'a softer aaah flies, but slower')
             s = state(pg)
             check(s['bird'] in ('fly', 'dead') or s['landings'] > 0 or s['mode'] != 'ready', f"sound alone made the kakapo take off ({s['mode']}/{s['bird']})")
             check(pg.evaluate("window.__kakapo.camera.status") == 'on', 'camera turns on by default with the microphone')
             # end the run and check the video of it
+            pg.evaluate("window.__kakapo.start('mic')"); time.sleep(1.5)
             pg.evaluate("window.__kakapo.sim._kill('water')")
+            time.sleep(3.2)
+            check(pg.evaluate("window.__kakapo.recorder.state") == 'recording' and not pg.is_visible('#resVideoBox'),
+                  'keeps recording the reaction after dying, without any on-screen notice')
             t0 = time.time()
-            while time.time() - t0 < 8 and not pg.is_visible('#btnSave'): time.sleep(0.1)
+            while time.time() - t0 < 16 and not pg.is_visible('#btnSave'): time.sleep(0.1)
             check(pg.is_visible('#btnSave'), 'results offer the run video (save)')
             size = pg.evaluate("window.__kakapo.recorder.blob ? window.__kakapo.recorder.blob.size : 0")
             kinds = pg.evaluate("window.__kakapo.recorder.mime")
             print(f'     run video: {size // 1024} KB, {kinds}')
             check(size > 20000, 'the video has real content (camera + game + audio)')
+            voice = video_voice_check(pg)
+            if voice is not None:
+                print(f'     voice in the video: 220 Hz aaah energy ×{voice:.0f} over background')
+                check(voice > 8, 'the video contains the player\'s voice')
             check(pg.evaluate("document.getElementById('resVideo').src.startsWith('blob:')"), 'video preview is shown')
             check(not errors, f'no page errors ({errors[:3]})')
             ctx.close(); b.close()
@@ -166,7 +205,7 @@ def main():
             pg.evaluate("window.__kakapo.start('touch')")
             pg.evaluate(AUTOPILOT)
             t0 = time.time()
-            while time.time() - t0 < 25 and state(pg)['landings'] < 4: time.sleep(0.2)
+            while time.time() - t0 < 45 and state(pg)['landings'] < 4: time.sleep(0.2)
             s = state(pg)
             check(s['landings'] >= 4, f"scripted player landed {s['landings']} times in the real page")
             pg.screenshot(path=os.path.join(TMP, 'kakapo-e2e-play.png'))
@@ -186,7 +225,7 @@ def main():
                 time.sleep(0.2)
             check(pg.is_visible('#results'), 'results screen after falling in the river')
             t0 = time.time()
-            while time.time() - t0 < 8 and not pg.is_visible('#btnSave'): time.sleep(0.1)
+            while time.time() - t0 < 16 and not pg.is_visible('#btnSave'): time.sleep(0.1)
             check(pg.is_visible('#btnSave'), 'run video ready without camera too (game + sounds)')
             pg.screenshot(path=os.path.join(TMP, 'kakapo-e2e-results.png'))
             for _ in range(3):

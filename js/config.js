@@ -22,30 +22,33 @@ export const CONFIG = {
   // Microphone analysis
   mic: {
     fftSize: 1024,
-    floorMarginDb: 6,     // level 0 starts this many dB above the calibrated noise floor
+    floorMarginDb: 12,    // flying starts this many dB above the room's noise: you have to SHOUT a bit
     defaultRangeDb: 30,   // dB from "level 0" to "level 1" when the loud calibration step is weak
-    minRangeDb: 16,
+    minRangeDb: 8,
+    minLoudSpanDb: 10,    // the calibration "AAAH" must be at least this far above the noise gate
     maxRangeDb: 42,
-    loudHeadroom: 0.85,   // the calibrated loud sample maps to this level (leaves headroom above)
-    attack: 0.09,         // smoothing time constant when the level rises (s)
-    release: 0.16,        // smoothing time constant when the level falls (s)
+    loudHeadroom: 1.0,    // your calibration "AAAH" is full speed (>1 would reach it with less)
+    attack: 0.07,         // smoothing time constant when the level rises (s)
+    release: 0.06,        // smoothing time constant when the level falls (s): stop squeaking = stops quickly
     calibQuietSec: 1.6,
     calibLoudSec: 1.8,    // 'volume' mode only
     calibNormalSec: 1.8,  // 'pitch' mode: "aaah" in your normal voice
     calibHighSec: 2.0,    // 'pitch' mode: your highest squeak
     // 'pitch': the higher your voice, the higher and faster he flies (talking does nothing).
     // 'volume': the louder, the higher (the original control).
-    mode: 'pitch',
+    mode: 'volume',
     pitch: {
       fftSize: 2048,
       minHz: 70,
       maxHz: 1600,
-      threshold: 0.15,    // YIN confidence: lower = stricter (fewer false pitches)
-      aboveSpeech: 2,     // flying starts this many semitones above your normal voice
+      threshold: 0.25,    // YIN confidence: lower = stricter. 0.25 keeps real, rough voices; noise still gives nothing
+      holdGap: 0.12,      // a voiced sound that briefly loses its pitch keeps the last one this long (s)
+      median: 3,          // frames in the median filter (more = steadier but slower)
+      aboveSpeech: 1,     // flying starts this many semitones above your normal voice
       minRange: 5,        // semitones from "starts flying" to "full speed", at least
       defaultRange: 9,    // used when the squeak step heard nothing useful
       defaultSpeakHz: 170,
-      highHeadroom: 1.0,  // full speed only at your best squeak
+      highHeadroom: 0.85, // full speed ~3 semitones below your best squeak: no need to scream
     },
     // Browser processing. AGC off keeps loudness meaningful; echo cancellation on
     // removes the game's own sound effects from the microphone signal.
@@ -55,15 +58,16 @@ export const CONFIG = {
   // Maps the smoothed 0..1 level to a control intensity
   control: {
     deadzone: 0.07,       // below this the bird hears "silence"
-    curve: 1.6,           // >1: the low end is gentle, full power only at the very top
+    curve: 1.2,           // >1: the low end is a little gentler
   },
 
   flight: {
-    gravity: 1060,         // px/s² while silent: he drops like a stone
-    maxFall: 370,         // px/s
+    gravity: 950,         // px/s² while silent: he drops like a stone
+    maxFall: 340,         // px/s
     minClimb: 60,         // climb speed at the softest audible sound (px/s)
-    maxClimb: 165,        // climb speed at full volume — caps the "shout launch"
-    climbResponse: 7.5,   // 1/s: how fast vertical speed approaches the target climb speed
+    maxClimb: 150,        // climb speed at full volume — caps the "shout launch"
+    climbResponse: 7.5,   // 1/s: how fast vertical speed approaches a faster climb
+    brakeResponse: 18,    // 1/s: how fast it slows down when you lower your voice (responsive!)
     ceilingCushion: 40,   // within this many px under the canopy, climbing slows down (assist)
     cushionMin: 0.15,     // ...to this fraction of maxClimb at contact (a gentle bump still hurts)
     hitHalfW: 6,          // hitbox half-size (bird is ~20 px tall on screen grid)
@@ -79,7 +83,7 @@ export const CONFIG = {
   },
 
   rest: {
-    takeoffLevel: 0.24,   // smoothed level that must be held to take off from a platform
+    takeoffLevel: 0.25,    // smoothed level that must be held to take off from a platform
     takeoffHold: 0.2,     // ...for this long (s). Ambient blips are ignored.
     takeoffVy: -120,
     landGrace: 0.35,      // after landing, ignore takeoff for this long (s)
@@ -155,6 +159,8 @@ export const CONFIG = {
     maxHeight: 1280,      // the video is scaled down to this height (vertical, phone-shaped)
     videoBps: 3500000,
     maxSeconds: 180,      // longer runs stop recording here
+    afterDeathSec: 5,     // keeps recording this long after dying, to catch the reaction
+    voiceGain: 1.8,       // your voice in the video, relative to the game's sound effects
   },
 
   // Drowning animation (purely visual: the run is already over)
@@ -168,7 +174,7 @@ export const CONFIG = {
   },
 
   bonk: {
-    stun: 0.32,           // controls ignored after hitting the canopy or a platform side (s)
+    stun: 0.15,           // controls ignored after hitting the canopy or a platform side (s)
     ceilingPush: 90,      // downward speed after a canopy bonk
     sideKnockback: 44,    // backwards speed after hitting a platform side
   },

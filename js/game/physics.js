@@ -22,7 +22,9 @@ export function approach(value, target, maxDelta) {
 export function stepVertical(vy, intensity, dt, flight, stunned) {
   if (intensity > 0 && !stunned) {
     const target = -(flight.minClimb + (flight.maxClimb - flight.minClimb) * intensity);
-    const k = 1 - Math.exp(-flight.climbResponse * dt);
+    // climbing faster than you now ask (voice went down): brake quickly
+    const rate = vy < target ? (flight.brakeResponse || flight.climbResponse) : flight.climbResponse;
+    const k = 1 - Math.exp(-rate * dt);
     return vy + (target - vy) * k;
   }
   return Math.min(vy + flight.gravity * dt, flight.maxFall);

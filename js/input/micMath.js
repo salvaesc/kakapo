@@ -39,14 +39,16 @@ export function percentile(values, p) {
  * The range stretches so the player's loud sound lands near `loudHeadroom`.
  */
 export function computeCalibration(quietDbs, loudDbs, cfg) {
-  const floorDb = Math.max(percentile(quietDbs, 0.9), -90);
+  // median: a word or a bump during the quiet step must not raise the floor (it would
+  // make the game deaf to the player); steady noise (a fan) still sets it
+  const floorDb = Math.max(percentile(quietDbs, 0.5), -90);
   const marginDb = cfg.floorMarginDb;
   let rangeDb = cfg.defaultRangeDb;
   let loudOk = false;
   if (loudDbs && loudDbs.length) {
     const loud = percentile(loudDbs, 0.8);
     const span = loud - floorDb - marginDb;
-    if (span >= cfg.minRangeDb * cfg.loudHeadroom) {
+    if (span >= cfg.minLoudSpanDb) {
       rangeDb = clamp(span / cfg.loudHeadroom, cfg.minRangeDb, cfg.maxRangeDb);
       loudOk = true;
     }

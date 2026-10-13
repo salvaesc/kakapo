@@ -178,14 +178,35 @@ button { font-family: inherit; }
 .chip.bad { color: var(--coral); }
 .btn.toggle { min-height: 48px; font-size: 16px; }
 .btn.toggle[aria-pressed="true"] { background: #2d6b3a; color: var(--lime-hi); }
+#micNote { margin: 4px 0 0 !important; font-size: 12px !important; min-height: 1em; }
 #camNote { margin: 4px 0 0 !important; font-size: 12px !important; min-height: 1em; }
 
 /* results: the run's video */
 .res-video { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 8px 0 4px; }
 .res-video video { height: min(26vh, 220px); max-width: 100%; aspect-ratio: 9 / 16; object-fit: cover; background: var(--ink-2); box-shadow: 0 0 0 var(--px) var(--ink); }
 .res-video p { margin: 0 !important; }
+.res-video p.rec { color: #ff6b6b; font-weight: 800; font-size: 15px !important; animation: hint-bob 1s steps(2) infinite; }
 .res-video-btns { width: 100%; margin-top: 0; gap: 8px; }
 .res-video-btns .btn { margin-top: 0; min-height: 48px; font-size: 17px; }
+.calib-panel h2 { margin-top: 6px; }
+.calib-steps { display: flex; justify-content: center; gap: 6px; list-style: none; padding: 0; margin: 0 0 4px; font-size: 12px; font-weight: 800; }
+.calib-steps li { padding: 4px 8px; background: var(--ink-2); color: var(--muted); border-radius: 2px; }
+.calib-steps li.active { background: var(--gold); color: var(--ink); }
+.calib-steps li.done { background: var(--lime-lo); color: var(--cream); }
+.calib-viz { display: grid; gap: 8px; margin: 10px 0 4px; }
+.viz-row { display: grid; grid-template-columns: 62px 1fr; align-items: center; gap: 8px; }
+.viz-label { font-size: 12px; font-weight: 800; color: var(--muted); text-align: left; text-transform: uppercase; letter-spacing: 0.5px; }
+.calib-viz .meter { margin: 0; }
+.pitchbar { position: relative; height: 22px; background: var(--ink-2); box-shadow: 0 0 0 2px var(--ink); }
+.pitch-zone { position: absolute; top: 0; bottom: 0; background: rgba(143, 220, 74, 0.28); display: none; }
+.pitch-mark { position: absolute; top: -3px; bottom: -3px; width: 4px; margin-left: -2px; display: none; }
+.pitch-mark.normal { background: var(--muted); }
+.pitch-mark.now { background: var(--gold); width: 6px; margin-left: -3px; }
+.calib-status { font-size: 17px !important; font-weight: 800; min-height: 2.6em; color: var(--cream); margin: 6px 0 !important; }
+.calib-status.good { color: var(--lime-hi); }
+.calib-status.warn { color: var(--gold); }
+.calib-status.bad { color: var(--coral); }
+#btnCalibSkip { margin-top: 2px; }
 .best { font-size: 14px !important; color: var(--gold); margin: 0 !important; min-height: 1em; font-weight: 700; }
 
 /* ---------- HUD ---------- */

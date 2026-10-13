@@ -226,7 +226,8 @@ export class Sim {
     if (b.vy <= 0 || b.y < b.apexY) b.apexY = b.y;
     b.fallHeight = b.y - b.apexY;
 
-    // Canopy maze: its underside and the sides of hanging masses both cost a heart.
+    // Canopy maze: hitting it with your head (from below) costs a heart; bumping into the
+    // side of a hanging mass just knocks you back.
     const ceils = this.world.ceilings;
     for (let i = 0; i < ceils.length; i++) {
       const c = ceils[i];
@@ -247,8 +248,8 @@ export class Sim {
         b.y = c.y + hh;
         if (b.vy < C.bonk.ceilingPush) b.vy = C.bonk.ceilingPush;
         this._bonk(b.x, b.y - hh, 0);
+        if (this._hurt('ceiling', b.x, b.y - hh)) return;
       }
-      if (this._hurt('ceiling', b.x, b.y - hh)) return;
     }
 
     // Platforms
@@ -274,7 +275,7 @@ export class Sim {
         b.y = p.y + p.h + hh;
         b.vy = Math.max(b.vy, 40);
         this._bonk(b.x, b.y - hh, 1);
-        if (this._hurt('underside', b.x, b.y - hh)) return;
+        // hitting an island from below: just a bounce, no heart lost
       } else if (face === 'left') {
         b.x = p.x - hw;
         b.speed = -C.bonk.sideKnockback;

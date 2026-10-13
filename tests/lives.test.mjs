@@ -51,14 +51,15 @@ test('hitting the canopy costs one heart, then the bird blinks (no double loss)'
   assert.equal(s.bird.lives, 2, 'no second heart lost while blinking');
 });
 
-test('hitting a platform from below costs one heart', () => {
+test('hitting a platform from below just bounces (no heart lost)', () => {
   const s = sim();
   const p = s.world.platforms[1];
   placeInAir(s, p.x + p.w / 2, p.y + p.h + H + 12, -60);
-  const seen = run(s, 1, 1, (x) => x.bird.lives < 3);
-  assert.ok(seen.includes('hurt'));
-  assert.equal(s.bird.lives, 2);
-  assert.equal(s.bird.hurtCause, 'underside');
+  const seen = run(s, 0.4, 1);
+  assert.ok(seen.includes('bonk'), 'bonks');
+  assert.ok(!seen.includes('hurt'));
+  assert.equal(s.bird.lives, 3);
+  assert.ok(s.bird.y - H >= p.y + p.h - 0.01, 'stays below the island');
 });
 
 test('hitting a platform side does not cost a heart', () => {
@@ -162,15 +163,24 @@ function findIn(s, list, pred) {
   throw new Error('not generated: ' + list);
 }
 
-test('flying into the side of a hanging canopy mass costs a heart and knocks back', () => {
+test('flying into the side of a hanging canopy mass knocks back without losing a heart', () => {
   const s = sim(4);
   const c = findIn(s, 'ceilings', (c) => c.kind === 'drop');
   placeInAir(s, c.x - H - 6, c.y - 8); // head-height inside the mass's band
   s.bird.speed = 90;
-  run(s, 0.5, 0.45, (x) => x.bird.lives < 3);
+  const seen = run(s, 0.5, 0.45);
+  assert.ok(seen.includes('bonk'));
+  assert.equal(s.bird.lives, 3);
+  assert.ok(s.bird.x < c.x, 'stays outside the mass');
+});
+
+test('hitting the canopy with the head (from below) still costs a heart', () => {
+  const s = sim(4);
+  const c = findIn(s, 'ceilings', (c) => c.kind === 'drop');
+  placeInAir(s, c.x + c.w / 2, c.y + H + 10, -120);
+  run(s, 2, 1, (x) => x.bird.lives < 3);
   assert.equal(s.bird.lives, 2);
   assert.equal(s.bird.hurtCause, 'ceiling');
-  assert.ok(s.bird.x < c.x, 'stays outside the mass');
 });
 
 test('flying under a hanging mass is safe', () => {

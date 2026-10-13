@@ -68,6 +68,9 @@ const ui = new UI({
   allowMic: requestMic,
   recalibrate: () => (mic.on ? startCalibration() : (game.mode = 'permission', ui.show('permission'))),
   settings: openSettings,
+  calibGo: () => calibGo(),
+  calibSkip: () => calibSkip(),
+  nextMic,
   toggleRecord: () => { recorder.setEnabled(!recorder.enabled); refreshSettings(); },
   shareVideo,
   saveVideo,
@@ -81,7 +84,7 @@ const ui = new UI({
 ui.setMuted(sfx.muted);
 ui.setBest(game.best);
 ui.setMicStatus(game.input, mic);
-const refreshSettings = () => ui.setSettings(camera, recorder, sfx.muted);
+const refreshSettings = (micNote) => ui.setSettings(camera, recorder, sfx.muted, mic, micNote);
 camera.onStatus = refreshSettings;
 mic.onStatus = () => {
   ui.setMicStatus(game.input, mic);
@@ -126,6 +129,18 @@ function openSettings() {
   ui.show('settings');
 }
 
+/** Settings → Microphone: switch to the next audio input (e.g. AirPods ↔ phone mic). */
+async function nextMic() {
+  const inputs = await Mic.listInputs();
+  if (inputs.length < 2) { refreshSettings('Only one microphone available.'); return; }
+  const cur = mic.stream && mic.stream.getAudioTracks()[0] && mic.stream.getAudioTracks()[0].getSettings().deviceId;
+  const i = Math.max(0, inputs.findIndex((d) => d.deviceId === cur));
+  const next = inputs[(i + 1) % inputs.length];
+  await mic.useDevice(next.deviceId);
+  game.sessionCalibrated = false; // a different mic needs a new calibration
+  refreshSettings('Switched. Recalibrate your voice for this microphone.');
+}
+
 function onPlay() {
   resumeAudio();
   if (mic.on) {
@@ -138,12 +153,31 @@ function onPlay() {
   ui.show('permission');
 }
 
+/**
+ * Asks for the microphone (and the camera, when wanted) in ONE request: on iPhone,
+ * asking for the camera after the mic can silently mute the mic. If the combined
+ * request fails (e.g. the camera is refused), falls back to the microphone alone.
+ */
 async function requestMic() {
   ui.setMicStatus(game.input, mic);
-  const status = await mic.start();
+  resumeAudio();
+  let status = null;
+  const md = navigator.mediaDevices;
+  if (camera.wanted && camera.status !== 'on' && md && md.getUserMedia && window.isSecureContext !== false) {
+    try {
+      const both = await md.getUserMedia({ audio: mic.audioConstraints(), video: camera.videoConstraints() });
+      status = await mic.start({ stream: new MediaStream(both.getAudioTracks()) });
+      await camera.startWithStream(new MediaStream(both.getVideoTracks()));
+    } catch {
+      status = null; // try the microphone on its own below
+    }
+  }
+  if (status !== 'on') {
+    status = await mic.start();
+    if (status === 'on' && camera.wanted && camera.status !== 'on') await camera.start();
+  }
+  refreshSettings();
   ui.setMicStatus(game.input, mic);
-  // camera right after the microphone (two prompts; a "no" to the camera still lets you play)
-  if (camera.wanted && camera.status !== 'on') { await camera.start(); refreshSettings(); }
   if (status === 'on') {
     game.input = 'mic';
     startCalibration();
@@ -153,75 +187,225 @@ async function requestMic() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Guided voice calibration: intro → quiet → normal voice → squeak → try it.
+// Voice steps only advance while the game actually hears you, and explain what
+// to do (or what to check) when it doesn't.
+// ---------------------------------------------------------------------------
+const CAL = {
+  quietSec: 2.5,      // silence step length
+  normalSec: 2.0,     // seconds of heard "aaah" needed
+  highSec: 1.8,       // seconds of heard squeak (high enough) needed
+  higherBy: 3,        // the squeak must be at least this many semitones above the normal voice
+  helpAfter: 4,       // seconds without hearing anything before showing troubleshooting
+  trySec: 0.6,        // seconds above the take-off line to pass the test
+  gotItSec: 0.9,      // the "✓ Got it" pause between steps
+};
+const STEP_NO = { intro: 0, quiet: 1, normal: 2, loud: 2, high: 3, try: 4, done: 5 };
+
+/** Position of a pitch on the calibration bar (log scale, 80 Hz → 0, 1200 Hz → 1). */
+const pitchMeter = (hz) => (hz > 0 ? Math.max(0, Math.min(1, Math.log2(hz / 80) / Math.log2(1200 / 80))) : null);
+const hearingMeter = () => Math.max(0, Math.min(1, (mic.db - mic.cal.floorDb + 4) / 40));
+const median = (a) => { const v = a.filter((x) => x > 0).sort((x, y) => x - y); return v.length ? v[v.length >> 1] : 0; };
+const NO_HEAR_NOTE = 'Can’t hear you? Check the mic isn’t muted, hold the phone closer, or pick another microphone in Settings (AirPods mics are often weak — try the phone’s own mic).';
+
 function startCalibration() {
   game.input = 'mic';
   game.mode = 'calibrating';
-  game.calib = { phase: 'quiet', t: 0, quiet: [], loud: [], normal: [], high: [] };
-  ui.calib('quiet', 0, 0, 'This sets the noise floor so background sounds don’t make him fly.');
+  // Volume mode: just 2 steps that start right away — silence, then a shout.
+  // (Pitch mode keeps its longer flow: intro, normal voice, squeak, try it.)
+  document.getElementById('cs2').textContent = mic.pitchMode ? 'Normal' : 'AAAH!';
+  document.getElementById('cs3').classList.toggle('hidden', !mic.pitchMode);
+  document.getElementById('cs4').classList.toggle('hidden', !mic.pitchMode);
+  game.calib = { phase: mic.pitchMode ? 'intro' : 'quiet', t: 0, quiet: [], normal: [], high: [], loud: [], heard: 0, silent: 0, gotIt: 0, tryT: 0 };
   ui.show('calib');
+  renderCalib(0);
 }
 
-/** Position of a pitch on the calibration meter (log scale, 80 Hz → 0, 1200 Hz → 1). */
-const pitchMeter = (hz) => (hz > 0 ? Math.max(0, Math.min(1, Math.log2(hz / 80) / Math.log2(1200 / 80))) : 0);
-
-function updateCalibration(dt) {
+function calibGo() {
   const c = game.calib;
-  const M = CONFIG.mic;
-  mic.sample(dt);
-  c.t += dt;
-  const pitch = mic.pitchMode;
-  const total = M.calibQuietSec + (pitch ? M.calibNormalSec + M.calibHighSec : M.calibLoudSec);
-  const progress = c.t / total;
-  if (c.phase === 'quiet') {
-    c.quiet.push(mic.db);
-    ui.calib('quiet', progress, Math.max(0, (mic.db + 80) / 80));
-    if (c.t >= M.calibQuietSec) {
-      c.floorGuess = Math.max(...c.quiet.slice(-20));
-      if (pitch) {
-        // the noise gate is needed right away to tell voice from room noise
-        mic.applyCalibration(c.quiet, null);
-        c.phase = 'normal';
-      } else {
-        c.phase = 'loud';
-      }
-    }
-  } else if (c.phase === 'normal') {
-    c.normal.push(mic.pitchHz);
-    ui.calib('normal', progress, pitchMeter(mic.pitchHz), mic.pitchHz ? `${Math.round(mic.pitchHz)} Hz` : ' ');
-    if (c.t >= M.calibQuietSec + M.calibNormalSec) c.phase = 'high';
-  } else if (c.phase === 'high') {
-    c.high.push(mic.pitchHz);
-    ui.calib('high', progress, pitchMeter(mic.pitchHz), mic.pitchHz ? `${Math.round(mic.pitchHz)} Hz` : ' ');
-    if (c.t >= total) {
-      const cal = mic.applyPitchCalibration(c.quiet, c.normal, c.high);
-      game.sessionCalibrated = true;
-      c.phase = 'done';
-      newRun();
-      if (!cal.pitchOk) ui.hint('Didn’t catch your voice well — using standard pitches. You can recalibrate from the menu.', 4);
-    }
-  } else if (c.phase === 'loud') {
-    c.loud.push(mic.db);
-    const lvl = Math.max(0, (mic.db - c.floorGuess) / 30);
-    ui.calib('loud', progress, lvl);
-    if (c.t >= total) {
-      const cal = mic.applyCalibration(c.quiet, c.loud);
-      game.sessionCalibrated = true;
-      c.phase = 'done';
-      newRun();
-      if (!cal.loudOk) ui.hint('Didn’t hear much — using normal sensitivity. You can recalibrate from the menu.', 4);
-    }
+  if (!c) return;
+  resumeAudio();
+  if (c.phase === 'intro') { setPhase('quiet'); return; }
+  if (c.phase === 'try' || c.phase === 'done') { finishCalibration(); return; }
+  if (mic.deadInput || !mic.on) { // "Retry": restart the microphone
+    mic.stop();
+    mic.start().then(() => { ui.setMicStatus(game.input, mic); setPhase(c.phase); });
   }
 }
 
-/** Audio for the run video: the microphone (your squeaks) mixed with the game's effects. */
+function calibSkip() {
+  const c = game.calib;
+  if (c && c.quiet.length) mic.applyPitchCalibration(c.quiet, c.normal, c.high);
+  game.sessionCalibrated = true;
+  game.calib = null;
+  newRun();
+  ui.hint('Using standard voice settings. You can tune it later in Settings.', 3.5);
+}
+
+function setPhase(p) {
+  const c = game.calib;
+  c.phase = p; c.t = 0; c.heard = 0; c.silent = 0; c.gotIt = 0; c.tryT = 0;
+  if (p === 'normal') c.normal.length = 0;
+  if (p === 'high') c.high.length = 0;
+}
+
+function finishCalibration() {
+  game.sessionCalibrated = true;
+  game.calib = null;
+  newRun();
+}
+
+function updateCalibration(dt) {
+  const c = game.calib;
+  if (!c) return;
+  mic.sample(dt);
+  c.t += dt;
+  const pitchMode = mic.pitchMode;
+  if (c.gotIt > 0) { // short "✓ Got it" pause, then the next step
+    c.gotIt -= dt;
+    if (c.gotIt <= 0) {
+      if (c.next === 'play') { finishCalibration(); return; }
+      setPhase(c.next);
+    }
+    renderCalib(dt);
+    return;
+  }
+  const done = (next) => { c.gotIt = CAL.gotItSec; c.next = next; };
+  const heardVoice = mic.voiced && (!pitchMode || mic.pitchHz > 0);
+  c.silent = heardVoice ? 0 : c.silent + dt;
+
+  if (c.phase === 'quiet') {
+    c.quiet.push(mic.db);
+    if (c.t >= CAL.quietSec) {
+      mic.applyCalibration(c.quiet, null); // noise gate first: it tells voice from room noise
+      done(pitchMode ? 'normal' : 'loud');
+    }
+  } else if (c.phase === 'normal') {
+    if (heardVoice) { c.heard += dt; c.normal.push(mic.pitchHz); }
+    if (c.heard >= CAL.normalSec) done('high');
+  } else if (c.phase === 'loud') {
+    if (heardVoice) { c.heard += dt; c.loud.push(mic.db); }
+    if (c.heard >= CAL.normalSec) {
+      mic.applyCalibration(c.quiet, c.loud);
+      done('play'); // that's it: straight into the game
+    }
+  } else if (c.phase === 'high') {
+    const normalHz = median(c.normal);
+    const target = normalHz * Math.pow(2, CAL.higherBy / 12);
+    if (heardVoice && mic.pitchHz >= target) { c.heard += dt; c.high.push(mic.pitchHz); }
+    if (c.heard >= CAL.highSec) {
+      mic.applyPitchCalibration(c.quiet, c.normal, c.high);
+      done('try');
+    }
+  } else if (c.phase === 'try') {
+    c.tryT = mic.level >= CONFIG.rest.takeoffLevel ? c.tryT + dt : Math.max(0, c.tryT - dt * 0.5);
+    if (c.tryT >= CAL.trySec && !c.passed) { c.passed = true; sfx.play('checkpoint'); }
+  }
+  renderCalib(dt);
+}
+
+function renderCalib() {
+  const c = game.calib;
+  if (!c) return;
+  const ph = c.gotIt > 0 ? c.phase : c.phase;
+  const step = STEP_NO[ph];
+  const v = { step, showViz: true, showPitch: mic.pitchMode, hearing: hearingMeter(), pitchNow: pitchMeter(mic.pitchHz), skip: true };
+  const hz = mic.pitchHz ? `${Math.round(mic.pitchHz)} Hz` : '';
+  if (c.gotIt > 0) {
+    Object.assign(v, { title: c.next === 'play' ? '✓ Got it! Let’s fly…' : '✓ Got it!', status: '', progress: 1 });
+  } else if (ph === 'intro') {
+    Object.assign(v, {
+      title: 'Tune the game to your voice',
+      text: mic.pitchMode
+        ? '3 short steps (about 20 seconds): a moment of silence, an “aaah” in your normal voice, and your best high squeak. Then a quick test.'
+        : '2 short steps (about 15 seconds): a moment of silence and a long, loud “AAAH”. Then a quick test.',
+      status: mic.voiced ? 'I can hear you ✓' : 'Say something — the “Hearing” bar should move.',
+      statusKind: mic.voiced ? 'good' : '',
+      note: 'Hold the phone at chatting distance. With AirPods in, their microphone is used.',
+      go: 'Start', progress: 0,
+    });
+  } else if (ph === 'quiet') {
+    const left = Math.max(1, Math.ceil(CAL.quietSec - c.t));
+    Object.assign(v, {
+      title: mic.pitchMode ? 'Step 1 · Shhh…' : '1 of 2 · Shhh…',
+      text: 'Stay quiet for a moment so the game learns your room’s noise.',
+      status: `Listening to the room… ${left}`, progress: c.t / CAL.quietSec, showPitch: false,
+      note: 'Background sounds below this level will never make the kakapo fly.',
+    });
+  } else if (ph === 'normal' || ph === 'loud') {
+    const loud = ph === 'loud';
+    Object.assign(v, {
+      title: loud ? '2 of 2 · Shout “AAAAH!”' : 'Step 2 · Your normal voice',
+      text: loud ? 'A long, loud “AAAAAH!” — like you’re cheering. Keep it going until the bar fills.' : 'Say a long “aaaaah” in your normal speaking voice — like at the doctor’s. Keep it going.',
+      progress: c.heard / CAL.normalSec,
+      showPitch: !loud,
+      note: loud ? 'This shout is the kakapo’s full speed. Softer = slower; talking won’t lift him.' : 'This pitch will NOT make him fly — only higher ones will.',
+    });
+    if (mic.deadInput) Object.assign(v, { status: 'The microphone is giving no sound at all.', statusKind: 'bad', note: NO_HEAR_NOTE, go: 'Retry microphone' });
+    else if (loud && mic.voiced) Object.assign(v, { status: 'I hear you ✓ — keep going…', statusKind: 'good' });
+    else if (mic.voiced && mic.pitchHz) Object.assign(v, { status: `I hear you ✓ ${hz} — keep going…`, statusKind: 'good' });
+    else if (mic.voiced) Object.assign(v, { status: 'I hear something — hold a steady “aaah”.', statusKind: 'warn' });
+    else if (c.silent > CAL.helpAfter) Object.assign(v, { status: 'I can’t hear you…', statusKind: 'bad', note: NO_HEAR_NOTE });
+    else Object.assign(v, { status: 'Waiting for your “aaah”…' });
+  } else if (ph === 'high') {
+    const normalHz = median(c.normal);
+    const target = normalHz * Math.pow(2, CAL.higherBy / 12);
+    Object.assign(v, {
+      title: 'Step 3 · Squeak!',
+      text: 'Now a high squeak — “iiiiii!” — as high as you can WITHOUT straining. Like a tiny bird.',
+      progress: c.heard / CAL.highSec,
+      pitchNormal: pitchMeter(normalHz), zoneFrom: pitchMeter(target), zoneTo: 1,
+      note: `Your normal voice: ${Math.round(normalHz)} Hz. Get into the green zone (above ${Math.round(target)} Hz).`,
+    });
+    if (mic.deadInput) Object.assign(v, { status: 'The microphone is giving no sound at all.', statusKind: 'bad', note: NO_HEAR_NOTE, go: 'Retry microphone' });
+    else if (mic.voiced && mic.pitchHz >= target) Object.assign(v, { status: `Yes! ✓ ${hz} — hold it…`, statusKind: 'good' });
+    else if (mic.voiced && mic.pitchHz) Object.assign(v, { status: `Higher! ↑ (${hz})`, statusKind: 'warn' });
+    else if (c.silent > CAL.helpAfter) Object.assign(v, { status: 'I can’t hear you…', statusKind: 'bad', note: NO_HEAR_NOTE });
+    else Object.assign(v, { status: 'Waiting for your squeak…' });
+  } else if (ph === 'try') {
+    const lv = mic.level;
+    const cal = mic.cal;
+    Object.assign(v, {
+      title: mic.pitchMode ? 'Step 4 · Try it' : 'Step 3 · Try it',
+      text: c.passed ? '' : (mic.pitchMode ? 'Squeak to fill the bar past the line for a second. Go quiet and it drops.'
+        : 'Say “aaah” to fill the bar for a second. Louder = higher and faster, softer = slower, silence = drop.'),
+      hearing: lv, showPitch: mic.pitchMode,
+      pitchNormal: mic.pitchMode ? pitchMeter(cal.speakHz) : null,
+      zoneFrom: mic.pitchMode ? pitchMeter(cal.lowHz) : null, zoneTo: mic.pitchMode ? pitchMeter(cal.highHz) : null,
+      progress: c.passed ? 1 : c.tryT / CAL.trySec,
+      go: c.passed ? 'Play!' : 'Play', skip: false,
+      note: mic.pitchMode ? `Flying starts at ${Math.round(cal.lowHz)} Hz, full speed at ${Math.round(cal.highHz)} Hz. You can redo this in Settings.` : 'You can redo this in Settings.',
+    });
+    if (c.passed) Object.assign(v, { status: 'Perfect! The kakapo would be flying. You’re ready.', statusKind: 'good' });
+    else if (mic.tooLow > 0.2) Object.assign(v, { status: 'Higher! ↑ That’s your talking voice.', statusKind: 'warn' });
+    else if (lv >= CONFIG.rest.takeoffLevel) Object.assign(v, { status: 'Flying! ✓ Hold it…', statusKind: 'good' });
+    else Object.assign(v, { status: mic.pitchMode ? 'Squeak!' : 'Aaaah!' });
+  }
+  ui.calibView(v);
+}
+
+/**
+ * Audio for the run video: YOUR VOICE (the microphone, boosted so the squeaks are the star)
+ * mixed with the game's effects. If this browser can't mix, the raw mic track is used.
+ */
 let recordDest = null;
+let micToRecord = null;
 function recordingAudioTracks() {
   const ctx = getAudioContext();
-  if (!ctx || !ctx.createMediaStreamDestination) return [];
+  if (!ctx || !ctx.createMediaStreamDestination) {
+    const t = mic.stream && mic.stream.getAudioTracks()[0];
+    return t ? [t.clone()] : [];
+  }
   if (!recordDest) recordDest = ctx.createMediaStreamDestination();
   sfx.recordTo(recordDest);
   if (mic.source && mic._recordedSource !== mic.source) {
-    mic.source.connect(recordDest);
+    if (!micToRecord) {
+      micToRecord = ctx.createGain();
+      micToRecord.gain.value = CONFIG.recording.voiceGain;
+      micToRecord.connect(recordDest);
+    }
+    mic.source.connect(micToRecord);
     mic._recordedSource = mic.source;
   }
   return recordDest.stream.getAudioTracks();
@@ -234,6 +418,15 @@ function startRecording() {
 
 async function finishRecording(score) {
   if (recorder.state !== 'recording' && recorder.state !== 'paused') { ui.setVideo('off'); return; }
+  // Keep recording for a few seconds after the death: the player's reaction is the best part.
+  const runId = game.runId;
+  const endAt = (game.deathAt || performance.now()) + CONFIG.recording.afterDeathSec * 1000;
+  while (performance.now() < endAt) {
+    if (game.mode !== 'results' || game.runId !== runId) return; // moved on: the next run takes over
+    ui.setVideo('off'); // silently keep recording the reaction (no on-screen notice)
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  if (game.mode !== 'results' || game.runId !== runId) return;
   ui.setVideo('preparing');
   const blob = await recorder.stop();
   if (game.mode !== 'results') return; // the player already moved on
@@ -248,7 +441,7 @@ async function shareVideo() {
   const file = game.videoFile;
   if (!file) return;
   try {
-    await navigator.share({ files: [file], title: 'KAKAPO', text: `I squeaked my way to ${sim.score} points in KAKAPO!` });
+    await navigator.share({ files: [file], title: 'KAKAPO', text: `I yelled my way to ${sim.score} points in KAKAPO!` });
   } catch (e) {
     if (e && e.name !== 'AbortError') saveVideo();
   }
@@ -282,6 +475,8 @@ function newRun() {
   game.dyingT = 0;
   game.firstFlightT = -1;
   game.videoFile = null;
+  game.deathAt = 0;
+  game.runId = (game.runId || 0) + 1;
   ui.setVideo('off');
   ui.show('game');
   startRecording();
@@ -461,6 +656,7 @@ function handleEvents() {
         break;
       case 'dead':
         ui.hint(null);
+        game.deathAt = performance.now();
         if (game.mode === 'playing' || game.mode === 'ready') {
           game.mode = 'dying';
           game.dyingT = 0;

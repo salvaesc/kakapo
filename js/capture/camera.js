@@ -65,6 +65,28 @@ export class Camera {
     return this.status;
   }
 
+  videoConstraints() {
+    return { facingMode: 'user', frameRate: { ideal: 30 } };
+  }
+
+  /** Uses an already-granted stream (from a combined mic + camera request). */
+  async startWithStream(stream) {
+    this.stop();
+    this.stream = stream;
+    const v = document.createElement('video');
+    v.muted = true;
+    v.playsInline = true;
+    v.setAttribute('playsinline', '');
+    v.setAttribute('muted', '');
+    v.srcObject = stream;
+    try { await v.play(); } catch { /* drawing waits for readyState */ }
+    this.video = v;
+    for (const t of stream.getVideoTracks()) t.addEventListener('ended', this._onEnded);
+    this.status = 'on';
+    this.error = '';
+    return this.status;
+  }
+
   setWanted(w) {
     this.wanted = w;
     save('camera', w);
