@@ -90,28 +90,36 @@ export class World {
     const d = this.difficulty(index);
     const checkpoint = index % W.checkpointEvery === 0;
 
-    const gap = lerp(W.gapMin[0], W.gapMin[1], d) + r.next() * lerp(W.gapRand[0], W.gapRand[1], d);
+    const E = W.easyStart;
+    const easy = !!E && index <= E.islands;
+
+    let gap = lerp(W.gapMin[0], W.gapMin[1], d) + r.next() * lerp(W.gapRand[0], W.gapRand[1], d);
     let w = lerp(W.widthMin[0], W.widthMin[1], d) + r.next() * lerp(W.widthRand[0], W.widthRand[1], d);
     if (checkpoint) w = Math.max(w, 64);
-    const rise = lerp(W.riseMax[0], W.riseMax[1], d);
-    const drop = lerp(W.dropMax[0], W.dropMax[1], d);
+    const rise = easy ? E.step : lerp(W.riseMax[0], W.riseMax[1], d);
+    const drop = easy ? E.step : lerp(W.dropMax[0], W.dropMax[1], d);
+    if (easy) {
+      gap = r.range(E.gap[0], E.gap[1]);
+      w = r.range(E.width[0], E.width[1]);
+    }
     let y = prev.y + r.range(-rise, drop);
     y = clamp(y, F.platformMinY, F.platformMaxY);
     const h = Math.round(r.range(W.thickness[0], W.thickness[1]));
     const x = prev.x + prev.w + gap;
-    const fire = Hz.enabled && index >= Hz.fire.unlock && !checkpoint && !prev.fire
+    const fire = !easy && Hz.enabled && index >= Hz.fire.unlock && !checkpoint && !prev.fire
       && r.chance(lerp(Hz.fire.chance[0], Hz.fire.chance[1], d));
     const p = this._add(Math.round(x), Math.round(y), Math.round(w), h, checkpoint, fire);
 
     // Canopy over the gap, then over the new island.
     const gx0 = prev.x + prev.w, gx1 = p.x;
     const gapLimit = Math.min(prev.y, p.y) - CL.clearGap;
-    let cg = this._pickCeiling(index, gapLimit);
+    const ceilIndex = easy ? -1 : index; // gentle start: flat canopy
+    let cg = this._pickCeiling(ceilIndex, gapLimit);
     if (gx1 - gx0 >= CL.splitGap) {
       // wide gap: two canopy pieces at different heights (a zig-zag through the maze)
       const split = Math.round(gx0 + (gx1 - gx0) * r.range(0.35, 0.65));
       this._ceil(gx0, split - gx0, cg.y, cg.kind);
-      const cg2 = this._pickCeiling(index, gapLimit);
+      const cg2 = this._pickCeiling(ceilIndex, gapLimit);
       this._ceil(split, gx1 - split, cg2.y, cg2.kind);
       if (cg2.y < cg.y) cg = cg2; // berries and spout clouds use the higher piece
     } else {
@@ -119,11 +127,11 @@ export class World {
     }
     // Over an island only a normal canopy or a clearing: a hanging mass right overhead
     // would make every takeoff hit it.
-    const cp = this._pickCeiling(index, -Infinity);
+    const cp = this._pickCeiling(ceilIndex, -Infinity);
     this._ceil(p.x, p.w, cp.y, cp.kind);
 
     // River hazard in the gap.
-    if (Hz.enabled && !p.fire && gx1 - gx0 >= Hz.minGap && r.chance(lerp(Hz.chance[0], Hz.chance[1], d))) {
+    if (!easy && Hz.enabled && !p.fire && gx1 - gx0 >= Hz.minGap && r.chance(lerp(Hz.chance[0], Hz.chance[1], d))) {
       const types = [];
       if (index >= Hz.shark.unlock) types.push('shark');
       if (index >= Hz.wave.unlock) types.push('wave');

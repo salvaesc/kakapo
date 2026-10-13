@@ -53,6 +53,14 @@ The meter at the bottom is a stereo-style wedge: the further right (taller, redd
 | Land on an island | Perched and **safe**. The world stops. Rest your voice as long as you like. |
 | Sustained sound while perched | Takes off (claps, clicks and background noise are ignored) |
 
+### Gentle start
+
+The first 3 islands (`world.easyStart`, about 5–7 seconds of flying) are close together and almost level, with no river hazards, no burning islands and no hanging canopy, so the voice control clicks before anything can kill you. The falcon only appears after 60 m (`predator.unlockMetres`).
+
+### Vibration
+
+On phones that support it (Android), the phone vibrates when you land, bump into something, lose a heart, a falcon spots you, and when you die (`js/core/haptics.js`). It can be turned off in **Settings → Vibration**. iPhone Safari has no vibration API, so the option is hidden there.
+
 ### The forest maze
 
 - **Canopy**: clearings let you fly higher; masses of hanging canopy drop down over most gaps — down to the middle of the screen — and wide gaps get two pieces at different heights, so you zig-zag through. You have to fly underneath them. They never hang directly over an island, and there is always room to pass underneath.
@@ -202,7 +210,7 @@ The game is made to be played **with the camera on**: when you tap Play it asks 
 
 Every run is recorded (Settings → *Save a video of each run*): the finished screen — your face, the forest and the kakapo — plus the sound: your squeaks from the microphone mixed with the game's effects. It's a light vertical video (720 px tall, 24 fps, ~0.8 Mbit/s video + 64 kbit/s audio ≈ 0.1 MB per second, so a short run is a few hundred KB; max 3 min; tune with `recording.maxHeight` / `videoBps`), made with `canvas.captureStream()` + `MediaRecorder` (`js/capture/recorder.js`). Format: MP4 with H.264 + **AAC** sound when the browser can (recent Chrome/Edge, Safari) because it plays with sound everywhere; otherwise WebM (VP9 + Opus). A plain MP4 from Chrome would carry Opus sound, which Windows' player and some apps open silent, so it is never chosen there.
 
-Recording quietly continues for **5 seconds after the kakapo dies** (`recording.afterDeathSec`) to catch your reaction. Your voice is mixed in louder than the game's sounds (`recording.voiceGain`). Then the results screen plays the clip and offers **Share video** (the phone's share sheet: WhatsApp, Instagram, TikTok…, via the Web Share API) and **Save video** (download). The video lives only in memory on the device; it is replaced by the next run and never uploaded unless you share it.
+Recording quietly continues for **5 seconds after the kakapo dies** (`recording.afterDeathSec`) to catch your reaction. About 2 s after the death a **score card** fades into the video and stays to the end (title such as SPLASH! or NEW RECORD!, points, metres, best score and the game's name), so whoever receives the clip knows how it went (`js/capture/endcard.js`, `recording.endCardAfterSec`). It's only in the video: the player sees the normal results screen. Your voice is mixed in louder than the game's sounds (`recording.voiceGain`). Then the results screen plays the clip and offers **Share video** (the phone's share sheet: WhatsApp, Instagram, TikTok…, via the Web Share API) and **Save video** (download). The video lives only in memory on the device; it is replaced by the next run and never uploaded unless you share it.
 
 Format: MP4 where the browser can (Safari, recent Chrome), otherwise WebM. Some social apps don't accept WebM; Safari/iOS and current Android Chrome produce MP4 with H.264.
 

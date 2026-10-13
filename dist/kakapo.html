@@ -384,6 +384,7 @@ button { font-family: inherit; }
           <p id="camNote" class="small"></p>
           <button id="btnSetRecord" class="btn btn-secondary toggle" aria-pressed="true">Save a video of each run: ON</button>
           <button id="btnSetSound" class="btn btn-secondary toggle" aria-pressed="true">Sound effects: ON</button>
+          <button id="btnSetVibrate" class="btn btn-secondary toggle hidden" aria-pressed="true">Vibration: ON</button>
           <button id="btnSetMic" class="btn btn-secondary">Microphone: default</button>
           <p id="micNote" class="small"></p>
           <button id="btnRecalibrate" class="btn btn-secondary">Recalibrate voice</button>
@@ -566,7 +567,7 @@ const CONFIG = {
   // and go unseen, like the real ones, so a falcon gives up on a perched bird.
   predator: {
     enabled: true,
-    unlockMetres: 40,
+    unlockMetres: 60,     // after the gentle start
     every: [7, 3.5],      // seconds between attacks, easy → hard (ramps over rampMetres)
     rampMetres: 500,
     warn: 1.1,            // "!" warning at the screen edge before the dive
@@ -598,6 +599,7 @@ const CONFIG = {
     audioBps: 64000,      // AAC: some encoders sound bad (or drop audio) below this
     maxSeconds: 180,      // longer runs stop recording here
     afterDeathSec: 5,     // keeps recording this long after dying, to catch the reaction
+    endCardAfterSec: 2.2, // the score card fades into the video this long after the death (stays to the end)
     voiceGain: 1.8,       // your voice in the video, relative to the game's sound effects
   },
 
@@ -630,6 +632,9 @@ const CONFIG = {
     dropMax: [40, 80],    // how much lower
     thickness: [16, 28],
     checkpointEvery: 6,   // every Nth platform is a pōhutukawa checkpoint
+    // Gentle start (~5–7 s of play): the first islands are close together, almost level,
+    // with no river hazards, no fire and no hanging canopy, so the voice control clicks first.
+    easyStart: { islands: 3, gap: [22, 34], step: 14, width: [62, 80] },
     berryChance: [0.55, 0.8],
     lookAhead: 260,
   },
@@ -902,28 +907,36 @@ class World {
     const d = this.difficulty(index);
     const checkpoint = index % W.checkpointEvery === 0;
 
-    const gap = lerp(W.gapMin[0], W.gapMin[1], d) + r.next() * lerp(W.gapRand[0], W.gapRand[1], d);
+    const E = W.easyStart;
+    const easy = !!E && index <= E.islands;
+
+    let gap = lerp(W.gapMin[0], W.gapMin[1], d) + r.next() * lerp(W.gapRand[0], W.gapRand[1], d);
     let w = lerp(W.widthMin[0], W.widthMin[1], d) + r.next() * lerp(W.widthRand[0], W.widthRand[1], d);
     if (checkpoint) w = Math.max(w, 64);
-    const rise = lerp(W.riseMax[0], W.riseMax[1], d);
-    const drop = lerp(W.dropMax[0], W.dropMax[1], d);
+    const rise = easy ? E.step : lerp(W.riseMax[0], W.riseMax[1], d);
+    const drop = easy ? E.step : lerp(W.dropMax[0], W.dropMax[1], d);
+    if (easy) {
+      gap = r.range(E.gap[0], E.gap[1]);
+      w = r.range(E.width[0], E.width[1]);
+    }
     let y = prev.y + r.range(-rise, drop);
     y = clamp(y, F.platformMinY, F.platformMaxY);
     const h = Math.round(r.range(W.thickness[0], W.thickness[1]));
     const x = prev.x + prev.w + gap;
-    const fire = Hz.enabled && index >= Hz.fire.unlock && !checkpoint && !prev.fire
+    const fire = !easy && Hz.enabled && index >= Hz.fire.unlock && !checkpoint && !prev.fire
       && r.chance(lerp(Hz.fire.chance[0], Hz.fire.chance[1], d));
     const p = this._add(Math.round(x), Math.round(y), Math.round(w), h, checkpoint, fire);
 
     // Canopy over the gap, then over the new island.
     const gx0 = prev.x + prev.w, gx1 = p.x;
     const gapLimit = Math.min(prev.y, p.y) - CL.clearGap;
-    let cg = this._pickCeiling(index, gapLimit);
+    const ceilIndex = easy ? -1 : index; // gentle start: flat canopy
+    let cg = this._pickCeiling(ceilIndex, gapLimit);
     if (gx1 - gx0 >= CL.splitGap) {
       // wide gap: two canopy pieces at different heights (a zig-zag through the maze)
       const split = Math.round(gx0 + (gx1 - gx0) * r.range(0.35, 0.65));
       this._ceil(gx0, split - gx0, cg.y, cg.kind);
-      const cg2 = this._pickCeiling(index, gapLimit);
+      const cg2 = this._pickCeiling(ceilIndex, gapLimit);
       this._ceil(split, gx1 - split, cg2.y, cg2.kind);
       if (cg2.y < cg.y) cg = cg2; // berries and spout clouds use the higher piece
     } else {
@@ -931,11 +944,11 @@ class World {
     }
     // Over an island only a normal canopy or a clearing: a hanging mass right overhead
     // would make every takeoff hit it.
-    const cp = this._pickCeiling(index, -Infinity);
+    const cp = this._pickCeiling(ceilIndex, -Infinity);
     this._ceil(p.x, p.w, cp.y, cp.kind);
 
     // River hazard in the gap.
-    if (Hz.enabled && !p.fire && gx1 - gx0 >= Hz.minGap && r.chance(lerp(Hz.chance[0], Hz.chance[1], d))) {
+    if (!easy && Hz.enabled && !p.fire && gx1 - gx0 >= Hz.minGap && r.chance(lerp(Hz.chance[0], Hz.chance[1], d))) {
       const types = [];
       if (index >= Hz.shark.unlock) types.push('shark');
       if (index >= Hz.wave.unlock) types.push('wave');
@@ -4086,6 +4099,7 @@ class UI {
     bind('btnSetMic', () => this.h.nextMic());
     bind('btnSetCamera', () => this.h.toggleCamera());
     bind('btnSetRecord', () => this.h.toggleRecord());
+    bind('btnSetVibrate', () => this.h.toggleVibrate());
     bind('btnSetSound', () => this.h.toggleMute());
     bind('btnSetBack', () => this.h.toMenu());
     bind('btnShare', () => this.h.shareVideo());
@@ -4137,7 +4151,7 @@ class UI {
   }
 
   /** Settings screen state. */
-  setSettings(cam, recorder, muted, mic, micNote) {
+  setSettings(cam, recorder, muted, mic, micNote, haptics) {
     if (mic) {
       const label = mic.on ? (mic.deviceLabel || 'default') : 'not on yet';
       $('btnSetMic').textContent = `Microphone: ${label.length > 26 ? label.slice(0, 25) + '…' : label}`;
@@ -4163,6 +4177,12 @@ class UI {
     const sb = $('btnSetSound');
     sb.textContent = `Sound effects: ${muted ? 'OFF' : 'ON'}`;
     sb.setAttribute('aria-pressed', String(!muted));
+    const vb = $('btnSetVibrate');
+    vb.classList.toggle('hidden', !(haptics && haptics.supported)); // iPhone Safari can't vibrate
+    if (haptics) {
+      vb.textContent = `Vibration: ${haptics.enabled ? 'ON' : 'OFF'}`;
+      vb.setAttribute('aria-pressed', String(haptics.enabled));
+    }
   }
 
   /** Results: the run's video. state: 'off' | 'preparing' | 'ready' | 'failed'. */
@@ -4253,6 +4273,10 @@ class UI {
     el.textContent = text;
     el.classList.remove('hidden');
     if (seconds) this._hintTimer = setTimeout(() => el.classList.add('hidden'), seconds * 1000);
+  }
+
+  resultTitle(cause) {
+    return TITLES[cause] || TITLES.water;
   }
 
   showResults(r) {
@@ -4503,12 +4527,88 @@ class Camera {
 
 return { Camera };
 })();
-// ---- js/capture/recorder.js
+// ---- js/capture/endcard.js
 __m[23] = (() => {
+// The end card burnt into the run video: title, score, distance and record, so whoever
+// receives the clip on WhatsApp knows how it went. Drawn only on the recording canvas
+// (the player sees the normal results screen).
+const { drawText, textWidth } = __m[9];
+const INK = '#0d2326';
+const PANEL = '#16363a';
+const LIME = '#c6f06a';
+const GOLD = '#ffd84a';
+const PALE = '#e8f4d8';
+
+/** Largest integer scale (≤ max) at which `str` fits in `width` pixels. */
+function fit(str, width, max) {
+  const one = textWidth(str, 1);
+  return Math.max(1, Math.min(max, Math.floor(width / Math.max(1, one))));
+}
+
+function centered(ctx, str, cx, y, scale, color) {
+  drawText(ctx, str, Math.round(cx), Math.round(y), { scale, color, shadow: INK, align: 'center' });
+  return 5 * scale;
+}
+
+/**
+ * card: { title, score, metres, best, newBest }
+ * alpha: 0..1 fade-in.
+ */
+function drawEndCard(ctx, w, h, card, alpha) {
+  if (!card || alpha <= 0) return;
+  const u = Math.max(2, Math.floor(w / 80));     // base pixel size (~4 on a 334 px wide video)
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.globalAlpha = Math.min(1, alpha);
+
+  // darken the game behind
+  ctx.fillStyle = 'rgba(8, 24, 26, 0.55)';
+  ctx.fillRect(0, 0, w, h);
+
+  // panel
+  const pw = Math.round(w * 0.86);
+  const inner = pw - 6 * u;
+  const title = String(card.title || 'KAKAPO').toUpperCase();
+  const score = String(card.score | 0);
+  const stats = `${card.metres | 0} M  -  BEST ${card.best | 0}`;
+  const sT = fit(title, inner, 3 * u);
+  const sS = fit(score, inner, 5 * u);
+  const sM = fit(stats, inner, u + Math.floor(u / 2));
+  const sF = fit('SHOUT TO FLY', inner, u);
+  const gap = 3 * u;
+  const ph = 4 * u + 5 * sT + gap + 5 * sS + u * 2 + 5 * u + gap + 5 * sM + gap * 2 + 5 * 2 * u + u * 2 + 5 * sF + 4 * u;
+  const px = Math.round((w - pw) / 2);
+  const py = Math.round(h * 0.52 - ph / 2);
+  ctx.fillStyle = INK;
+  ctx.fillRect(px + u, py + u, pw, ph);           // drop shadow
+  ctx.fillStyle = PANEL;
+  ctx.fillRect(px, py, pw, ph);
+  ctx.fillStyle = LIME;                           // pixel border
+  ctx.fillRect(px, py, pw, u);
+  ctx.fillRect(px, py + ph - u, pw, u);
+  ctx.fillRect(px, py, u, ph);
+  ctx.fillRect(px + pw - u, py, u, ph);
+
+  const cx = w / 2;
+  let y = py + 4 * u;
+  y += centered(ctx, title, cx, y, sT, card.newBest ? GOLD : LIME) + gap;
+  y += centered(ctx, score, cx, y, sS, '#ffffff') + u * 2;
+  y += centered(ctx, 'POINTS', cx, y, u, PALE) + gap;
+  y += centered(ctx, stats, cx, y, sM, card.newBest ? GOLD : PALE) + gap * 2;
+  y += centered(ctx, 'KAKAPO', cx, y, 2 * u, LIME) + u * 2;
+  centered(ctx, 'SHOUT TO FLY', cx, y, sF, PALE);
+  ctx.restore();
+}
+
+return { drawEndCard };
+})();
+// ---- js/capture/recorder.js
+__m[24] = (() => {
 // Records each run: the finished screen (camera + game) and the sound (your squeaks + the
 // game's effects) into a vertical video, ready to share when the run ends.
 // The video stays in memory on this device; it is only shared if the player taps Share.
 const { load, save } = __m[16];
+const { drawEndCard } = __m[23];
 // MP4 with AAC sound first: it plays with sound everywhere (Windows player, WhatsApp, iPhone).
 // A plain 'video/mp4' in Chrome means Opus sound inside MP4, which many players open
 // SILENT, so Chrome without AAC gets WebM (Opus in WebM is understood); Safari's plain
@@ -4546,6 +4646,7 @@ class Recorder {
     this.mime = '';
     this.startedAt = 0;
     this._stopPromise = null;
+    this.endCard = null;    // { title, score, metres, best, newBest, showAt (performance.now ms) }
     const hasRecorder = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined';
     const hasCapture = typeof HTMLCanvasElement !== 'undefined' && 'captureStream' in HTMLCanvasElement.prototype;
     if (hasRecorder && hasCapture) {
@@ -4594,10 +4695,20 @@ class Recorder {
     return true;
   }
 
+  /** Burns a results card into the last seconds of the video (from `showAt`, a performance.now time). */
+  setEndCard(card, showAt) {
+    this.endCard = card ? { ...card, showAt } : null;
+  }
+
   /** Called after every rendered frame. */
   frame(display) {
     if (this.state !== 'recording') return;
     this.ctx.drawImage(display, 0, 0, this.canvas.width, this.canvas.height);
+    const card = this.endCard;
+    if (card) {
+      const t = performance.now() - card.showAt;
+      if (t >= 0) drawEndCard(this.ctx, this.canvas.width, this.canvas.height, card, t / 350);
+    }
     if (performance.now() - this.startedAt > this.cfg.maxSeconds * 1000) this.stop();
   }
 
@@ -4645,6 +4756,7 @@ class Recorder {
       this.rec = null;
     }
     this._stopPromise = null;
+    this.endCard = null;
     this.chunks = [];
     if (this.url) URL.revokeObjectURL(this.url);
     this.url = '';
@@ -4660,8 +4772,43 @@ class Recorder {
 
 return { Recorder };
 })();
+// ---- js/core/haptics.js
+__m[25] = (() => {
+// Phone vibration on the big moments (landing, losing a heart, dying).
+// Uses navigator.vibrate: Android browsers support it; iPhone Safari does not (it's
+// simply skipped there). Can be turned off in Settings.
+const { load, save } = __m[16];
+const PATTERNS = {
+  land: 12,
+  bonk: 25,
+  checkpoint: [20, 40, 20],
+  hurt: [70, 40, 70],
+  falcon: [15, 30, 15],
+  dead: [160, 60, 260],
+};
+
+class Haptics {
+  constructor() {
+    this.supported = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
+    this.enabled = load('vibrate', true);
+  }
+
+  setEnabled(on) {
+    this.enabled = on;
+    save('vibrate', on);
+    if (on) this.buzz('land');
+  }
+
+  buzz(kind) {
+    if (!this.supported || !this.enabled) return;
+    try { navigator.vibrate(PATTERNS[kind] ?? kind); } catch { /* ignored */ }
+  }
+}
+
+return { Haptics };
+})();
 // ---- js/main.js
-__m[24] = (() => {
+__m[26] = (() => {
 // KAKAPO — game loop and state management.
 // Owns the single requestAnimationFrame loop and wires simulation, input,
 // rendering, effects, sound and UI together.
@@ -4679,7 +4826,8 @@ const { UI } = __m[20];
 const { load, save } = __m[16];
 const { frameHooks } = __m[21];
 const { Camera } = __m[22];
-const { Recorder } = __m[23];
+const { Recorder } = __m[24];
+const { Haptics } = __m[25];
 const { getAudioContext } = __m[14];
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -4698,6 +4846,7 @@ const touch = new TouchControl(CONFIG, stage);
 const camera = new Camera(CONFIG);
 renderer.camera = camera;
 const recorder = new Recorder(CONFIG);
+const haptics = new Haptics();
 frameHooks.push((display) => recorder.frame(display));
 
 /**
@@ -4735,6 +4884,7 @@ const ui = new UI({
   calibSkip: () => calibSkip(),
   nextMic,
   toggleRecord: () => { recorder.setEnabled(!recorder.enabled); refreshSettings(); },
+  toggleVibrate: () => { haptics.setEnabled(!haptics.enabled); refreshSettings(); },
   shareVideo,
   saveVideo,
   toMenu: toMenu,
@@ -4747,7 +4897,7 @@ const ui = new UI({
 ui.setMuted(sfx.muted);
 ui.setBest(game.best);
 ui.setMicStatus(game.input, mic);
-const refreshSettings = (micNote) => ui.setSettings(camera, recorder, sfx.muted, mic, micNote);
+const refreshSettings = (micNote) => ui.setSettings(camera, recorder, sfx.muted, mic, micNote, haptics);
 camera.onStatus = refreshSettings;
 mic.onStatus = () => {
   ui.setMicStatus(game.input, mic);
@@ -5183,6 +5333,11 @@ function endRun() {
     score, metres: sim.metres, landings: sim.bird.landings, berries: sim.berries, best: game.best, newBest,
     cause: sim.bird.deathCause,
   });
+  // the end card appears in the video a little after the death, once the reaction has started
+  recorder.setEndCard({
+    title: newBest ? 'NEW RECORD!' : ui.resultTitle(sim.bird.deathCause),
+    score, metres: sim.metres, best: game.best, newBest,
+  }, (game.deathAt || performance.now()) + CONFIG.recording.endCardAfterSec * 1000);
   finishRecording(score);
 }
 
@@ -5232,6 +5387,7 @@ function handleEvents() {
         fx.addShake(e.a > 0 ? 2 : 1);
         if (e.a > 0) fx.popup(e.x, e.y - 26, '+' + e.a, '#e4f2a0');
         sfx.play('land');
+        haptics.buzz('land');
         if (sim.bird.landings === 1 && sim.bird.state === 'rest') ui.hint('Safe! Rest as long as you like.', 2.6);
         break;
       case 'perfect':
@@ -5243,6 +5399,7 @@ function handleEvents() {
         fx.burst(e.x, e.y - 10, 18, PETALS, 60, 40, 50, 1.4, 2);
         fx.showBanner('POHUTUKAWA!', '#ff7a5c', 1.4);
         sfx.play('checkpoint');
+        haptics.buzz('checkpoint');
         break;
       case 'berry':
         fx.burst(e.x, e.y, 6, ['#e2364a', '#ffd0d4', '#ffd84a'], 40, 0, 40, 0.4);
@@ -5254,6 +5411,7 @@ function handleEvents() {
         fx.flash = 0.6;
         for (let k = 0; k < 4; k++) fx.spawn(e.x, e.y, (Math.random() - 0.5) * 30, -20 - Math.random() * 20, 30, 1.4, LEAVES[k % 3], 2, 1);
         sfx.play('bonk');
+        haptics.buzz('bonk');
         break;
       }
       case 'splash':
@@ -5270,6 +5428,7 @@ function handleEvents() {
         for (let k = 0; k < 6; k++) fx.spawn(e.x, e.y, (Math.random() - 0.5) * 50, -30 - Math.random() * 30, 40, 1.6, LEAVES[k % 3], 2, 1);
         if (cause === 'fall') fx.burst(e.x, e.y, 14, DUST, 60, 10, 160, 0.5);
         sfx.play(e.a > 0 ? 'hurt' : 'ko');
+        haptics.buzz('hurt');
         if (e.a > 0 && !game.hintsShown[cause]) {
           game.hintsShown[cause] = true;
           ui.hint(HURT_HINTS[cause], 3);
@@ -5293,6 +5452,7 @@ function handleEvents() {
         break;
       case 'falconWarn':
         sfx.play('screech');
+        haptics.buzz('falcon');
         if (!game.hintsShown.falcon) {
           game.hintsShown.falcon = true;
           ui.hint('Falcon! When the ! turns red, change height. Perched kakapo are invisible to it.', 4);
@@ -5319,6 +5479,7 @@ function handleEvents() {
         break;
       case 'dead':
         ui.hint(null);
+        haptics.buzz('dead');
         game.deathAt = performance.now();
         if (game.mode === 'playing' || game.mode === 'ready') {
           game.mode = 'dying';

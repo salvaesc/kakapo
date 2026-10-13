@@ -16,6 +16,7 @@ import { load, save } from './core/storage.js';
 import { frameHooks } from './capture/capture.js';
 import { Camera } from './capture/camera.js';
 import { Recorder } from './capture/recorder.js';
+import { Haptics } from './core/haptics.js';
 import { getAudioContext } from './audio/audioContext.js';
 
 const TEST = new URLSearchParams(location.search).has('test');
@@ -35,6 +36,7 @@ const touch = new TouchControl(CONFIG, stage);
 const camera = new Camera(CONFIG);
 renderer.camera = camera;
 const recorder = new Recorder(CONFIG);
+const haptics = new Haptics();
 frameHooks.push((display) => recorder.frame(display));
 
 /**
@@ -72,6 +74,7 @@ const ui = new UI({
   calibSkip: () => calibSkip(),
   nextMic,
   toggleRecord: () => { recorder.setEnabled(!recorder.enabled); refreshSettings(); },
+  toggleVibrate: () => { haptics.setEnabled(!haptics.enabled); refreshSettings(); },
   shareVideo,
   saveVideo,
   toMenu: toMenu,
@@ -84,7 +87,7 @@ const ui = new UI({
 ui.setMuted(sfx.muted);
 ui.setBest(game.best);
 ui.setMicStatus(game.input, mic);
-const refreshSettings = (micNote) => ui.setSettings(camera, recorder, sfx.muted, mic, micNote);
+const refreshSettings = (micNote) => ui.setSettings(camera, recorder, sfx.muted, mic, micNote, haptics);
 camera.onStatus = refreshSettings;
 mic.onStatus = () => {
   ui.setMicStatus(game.input, mic);
@@ -520,6 +523,11 @@ function endRun() {
     score, metres: sim.metres, landings: sim.bird.landings, berries: sim.berries, best: game.best, newBest,
     cause: sim.bird.deathCause,
   });
+  // the end card appears in the video a little after the death, once the reaction has started
+  recorder.setEndCard({
+    title: newBest ? 'NEW RECORD!' : ui.resultTitle(sim.bird.deathCause),
+    score, metres: sim.metres, best: game.best, newBest,
+  }, (game.deathAt || performance.now()) + CONFIG.recording.endCardAfterSec * 1000);
   finishRecording(score);
 }
 
@@ -569,6 +577,7 @@ function handleEvents() {
         fx.addShake(e.a > 0 ? 2 : 1);
         if (e.a > 0) fx.popup(e.x, e.y - 26, '+' + e.a, '#e4f2a0');
         sfx.play('land');
+        haptics.buzz('land');
         if (sim.bird.landings === 1 && sim.bird.state === 'rest') ui.hint('Safe! Rest as long as you like.', 2.6);
         break;
       case 'perfect':
@@ -580,6 +589,7 @@ function handleEvents() {
         fx.burst(e.x, e.y - 10, 18, PETALS, 60, 40, 50, 1.4, 2);
         fx.showBanner('POHUTUKAWA!', '#ff7a5c', 1.4);
         sfx.play('checkpoint');
+        haptics.buzz('checkpoint');
         break;
       case 'berry':
         fx.burst(e.x, e.y, 6, ['#e2364a', '#ffd0d4', '#ffd84a'], 40, 0, 40, 0.4);
@@ -591,6 +601,7 @@ function handleEvents() {
         fx.flash = 0.6;
         for (let k = 0; k < 4; k++) fx.spawn(e.x, e.y, (Math.random() - 0.5) * 30, -20 - Math.random() * 20, 30, 1.4, LEAVES[k % 3], 2, 1);
         sfx.play('bonk');
+        haptics.buzz('bonk');
         break;
       }
       case 'splash':
@@ -607,6 +618,7 @@ function handleEvents() {
         for (let k = 0; k < 6; k++) fx.spawn(e.x, e.y, (Math.random() - 0.5) * 50, -30 - Math.random() * 30, 40, 1.6, LEAVES[k % 3], 2, 1);
         if (cause === 'fall') fx.burst(e.x, e.y, 14, DUST, 60, 10, 160, 0.5);
         sfx.play(e.a > 0 ? 'hurt' : 'ko');
+        haptics.buzz('hurt');
         if (e.a > 0 && !game.hintsShown[cause]) {
           game.hintsShown[cause] = true;
           ui.hint(HURT_HINTS[cause], 3);
@@ -630,6 +642,7 @@ function handleEvents() {
         break;
       case 'falconWarn':
         sfx.play('screech');
+        haptics.buzz('falcon');
         if (!game.hintsShown.falcon) {
           game.hintsShown.falcon = true;
           ui.hint('Falcon! When the ! turns red, change height. Perched kakapo are invisible to it.', 4);
@@ -656,6 +669,7 @@ function handleEvents() {
         break;
       case 'dead':
         ui.hint(null);
+        haptics.buzz('dead');
         game.deathAt = performance.now();
         if (game.mode === 'playing' || game.mode === 'ready') {
           game.mode = 'dying';

@@ -85,6 +85,15 @@ def video_voice_check(pg):
                                 capture_output=True, text=True).stdout.split()
         print('     video streams:', ' '.join(codecs))
         check(any('audio' in c for c in codecs), 'the video file has a sound track')
+        # the end card (score panel) is burnt into the last frames
+        last = os.path.join(TMP, 'kakapo-e2e-lastframe.png')
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', vid, '-an', '-update', '1', last], check=True)  # keeps overwriting: ends with the last frame
+        raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', last, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout
+        px = np.frombuffer(raw, dtype=np.uint8).reshape(-1, 3).astype(int)
+        panel = np.mean((abs(px[:, 0] - 0x16) < 14) & (abs(px[:, 1] - 0x36) < 14) & (abs(px[:, 2] - 0x3a) < 14))
+        lime = np.mean((abs(px[:, 0] - 0xc6) < 30) & (abs(px[:, 1] - 0xf0) < 30) & (abs(px[:, 2] - 0x6a) < 40))
+        print(f'     end card in the last frame: panel {panel:.0%}, lime {lime:.1%} ({last})')
+        check(panel > 0.15 and lime > 0.005, 'the video ends with the score card')
     with wave.open(wav) as w:
         x = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32)
     spec = np.abs(np.fft.rfft(x * np.hanning(len(x))))
@@ -109,6 +118,7 @@ def main():
             b = p.chromium.launch(args=['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream',
                                         f'--use-file-for-fake-audio-capture={wav}', '--autoplay-policy=no-user-gesture-required'])
             ctx = b.new_context(**PHONE)
+            ctx.add_init_script("window.__buzz = []; navigator.vibrate = (p) => { window.__buzz.push(p); return true; };")
             ctx.grant_permissions(['microphone', 'camera'], origin=f'http://localhost:{PORT}')
             pg = ctx.new_page()
             errors = []
@@ -172,6 +182,9 @@ def main():
                 print(f'     voice in the video: 220 Hz aaah energy ×{voice:.0f} over background')
                 check(voice > 8, 'the video contains the player\'s voice')
             check(pg.evaluate("document.getElementById('resVideo').src.startsWith('blob:')"), 'video preview is shown')
+            buzz = pg.evaluate('window.__buzz')
+            print('     vibrations:', buzz)
+            check(any(isinstance(b_, list) and len(b_) == 3 and b_[2] >= 200 for b_ in buzz), 'the phone vibrates on death')
             check(not errors, f'no page errors ({errors[:3]})')
             ctx.close(); b.close()
 

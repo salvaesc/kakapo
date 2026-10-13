@@ -87,6 +87,7 @@ export class UI {
     bind('btnSetMic', () => this.h.nextMic());
     bind('btnSetCamera', () => this.h.toggleCamera());
     bind('btnSetRecord', () => this.h.toggleRecord());
+    bind('btnSetVibrate', () => this.h.toggleVibrate());
     bind('btnSetSound', () => this.h.toggleMute());
     bind('btnSetBack', () => this.h.toMenu());
     bind('btnShare', () => this.h.shareVideo());
@@ -138,7 +139,7 @@ export class UI {
   }
 
   /** Settings screen state. */
-  setSettings(cam, recorder, muted, mic, micNote) {
+  setSettings(cam, recorder, muted, mic, micNote, haptics) {
     if (mic) {
       const label = mic.on ? (mic.deviceLabel || 'default') : 'not on yet';
       $('btnSetMic').textContent = `Microphone: ${label.length > 26 ? label.slice(0, 25) + '…' : label}`;
@@ -164,6 +165,12 @@ export class UI {
     const sb = $('btnSetSound');
     sb.textContent = `Sound effects: ${muted ? 'OFF' : 'ON'}`;
     sb.setAttribute('aria-pressed', String(!muted));
+    const vb = $('btnSetVibrate');
+    vb.classList.toggle('hidden', !(haptics && haptics.supported)); // iPhone Safari can't vibrate
+    if (haptics) {
+      vb.textContent = `Vibration: ${haptics.enabled ? 'ON' : 'OFF'}`;
+      vb.setAttribute('aria-pressed', String(haptics.enabled));
+    }
   }
 
   /** Results: the run's video. state: 'off' | 'preparing' | 'ready' | 'failed'. */
@@ -254,6 +261,10 @@ export class UI {
     el.textContent = text;
     el.classList.remove('hidden');
     if (seconds) this._hintTimer = setTimeout(() => el.classList.add('hidden'), seconds * 1000);
+  }
+
+  resultTitle(cause) {
+    return TITLES[cause] || TITLES.water;
   }
 
   showResults(r) {

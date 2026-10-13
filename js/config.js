@@ -129,7 +129,7 @@ export const CONFIG = {
   // and go unseen, like the real ones, so a falcon gives up on a perched bird.
   predator: {
     enabled: true,
-    unlockMetres: 40,
+    unlockMetres: 60,     // after the gentle start
     every: [7, 3.5],      // seconds between attacks, easy → hard (ramps over rampMetres)
     rampMetres: 500,
     warn: 1.1,            // "!" warning at the screen edge before the dive
@@ -161,6 +161,7 @@ export const CONFIG = {
     audioBps: 64000,      // AAC: some encoders sound bad (or drop audio) below this
     maxSeconds: 180,      // longer runs stop recording here
     afterDeathSec: 5,     // keeps recording this long after dying, to catch the reaction
+    endCardAfterSec: 2.2, // the score card fades into the video this long after the death (stays to the end)
     voiceGain: 1.8,       // your voice in the video, relative to the game's sound effects
   },
 
@@ -193,6 +194,9 @@ export const CONFIG = {
     dropMax: [40, 80],    // how much lower
     thickness: [16, 28],
     checkpointEvery: 6,   // every Nth platform is a pōhutukawa checkpoint
+    // Gentle start (~5–7 s of play): the first islands are close together, almost level,
+    // with no river hazards, no fire and no hanging canopy, so the voice control clicks first.
+    easyStart: { islands: 3, gap: [22, 34], step: 14, width: [62, 80] },
     berryChance: [0.55, 0.8],
     lookAhead: 260,
   },

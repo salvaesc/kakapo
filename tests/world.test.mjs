@@ -161,3 +161,42 @@ test('river hazards always leave windows: a patient scripted player survives the
   assert.ok(alive >= 13, `alive ${alive}`);
   assert.ok(landings >= 100);
 });
+
+test('gentle start: the first islands are close, level and safe', () => {
+  const E = cfg.world.easyStart;
+  for (let seed = 1; seed <= 40; seed++) {
+    const w = new World(cfg);
+    w.reset(seed);
+    w.update(0, 3000);
+    const ps = w.platforms;
+    const end = ps[E.islands].x + ps[E.islands].w;
+    for (let i = 1; i <= E.islands; i++) {
+      const p = ps[i], q = ps[i - 1];
+      assert.ok(p.x - (q.x + q.w) <= E.gap[1] + 1, 'short gap');
+      assert.ok(Math.abs(p.y - q.y) <= E.step + 1, 'almost level');
+      assert.ok(!p.fire, 'no fire');
+    }
+    assert.ok(!w.hazards.some((h) => h.x0 < end), 'no river hazards');
+    assert.ok(!w.ceilings.some((c) => c.kind === 'drop' && c.x < end), 'no hanging canopy');
+  }
+});
+
+test('gentle start lasts only a few seconds of play', () => {
+  const times = [];
+  for (let seed = 1; seed <= 12; seed++) {
+    const s = new Sim(structuredClone(cfg));
+    s.reset(seed);
+    const end = s.world.platforms[cfg.world.easyStart.islands];
+    let t = 0, flying = 0;
+    while (t < 40 && s.bird.x < end.x + end.w) {
+      s.update(1 / 60, autopilotLevel(s), true);
+      s.clearEvents();
+      t += 1 / 60;
+      if (s.bird.state === 'fly') flying += 1 / 60;
+    }
+    times.push(flying);
+  }
+  const avg = times.reduce((a, b) => a + b, 0) / times.length;
+  // flying time (the autopilot also stops to rest on islands, a player doesn't have to)
+  assert.ok(avg > 4 && avg < 8, `about 5–7 s of flying: avg ${avg.toFixed(1)} s`);
+});

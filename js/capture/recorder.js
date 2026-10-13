@@ -2,6 +2,7 @@
 // game's effects) into a vertical video, ready to share when the run ends.
 // The video stays in memory on this device; it is only shared if the player taps Share.
 import { load, save } from '../core/storage.js';
+import { drawEndCard } from './endcard.js';
 
 // MP4 with AAC sound first: it plays with sound everywhere (Windows player, WhatsApp, iPhone).
 // A plain 'video/mp4' in Chrome means Opus sound inside MP4, which many players open
@@ -40,6 +41,7 @@ export class Recorder {
     this.mime = '';
     this.startedAt = 0;
     this._stopPromise = null;
+    this.endCard = null;    // { title, score, metres, best, newBest, showAt (performance.now ms) }
     const hasRecorder = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined';
     const hasCapture = typeof HTMLCanvasElement !== 'undefined' && 'captureStream' in HTMLCanvasElement.prototype;
     if (hasRecorder && hasCapture) {
@@ -88,10 +90,20 @@ export class Recorder {
     return true;
   }
 
+  /** Burns a results card into the last seconds of the video (from `showAt`, a performance.now time). */
+  setEndCard(card, showAt) {
+    this.endCard = card ? { ...card, showAt } : null;
+  }
+
   /** Called after every rendered frame. */
   frame(display) {
     if (this.state !== 'recording') return;
     this.ctx.drawImage(display, 0, 0, this.canvas.width, this.canvas.height);
+    const card = this.endCard;
+    if (card) {
+      const t = performance.now() - card.showAt;
+      if (t >= 0) drawEndCard(this.ctx, this.canvas.width, this.canvas.height, card, t / 350);
+    }
     if (performance.now() - this.startedAt > this.cfg.maxSeconds * 1000) this.stop();
   }
 
@@ -139,6 +151,7 @@ export class Recorder {
       this.rec = null;
     }
     this._stopPromise = null;
+    this.endCard = null;
     this.chunks = [];
     if (this.url) URL.revokeObjectURL(this.url);
     this.url = '';
