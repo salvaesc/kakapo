@@ -8,9 +8,14 @@ import { sharkAt, spoutAt, waveHeight, eelAt } from '../js/game/hazards.js';
 const cfg = structuredClone(CONFIG);
 const L = cfg.lives;
 const H = cfg.flight.hitHalfH;
+// The fall tests check the mechanism with a lower threshold: the real one (CONFIG) is so
+// forgiving that few islands have that much open sky above them.
+const fallCfg = structuredClone(CONFIG);
+fallCfg.lives.hardFallHeight = 90;
+const FL = fallCfg.lives;
 
-function sim(seed = 3) {
-  const s = new Sim(cfg);
+function sim(seed = 3, c = cfg) {
+  const s = new Sim(c);
   s.reset(seed);
   return s;
 }
@@ -83,8 +88,8 @@ test('falling into the river takes every heart', () => {
 });
 
 test('a long free fall onto a platform costs a heart; a short one does not', () => {
-  for (const [drop, expected] of [[L.hardFallHeight * 0.6, 3], [L.hardFallHeight + 20, 2]]) {
-    const s = sim();
+  for (const [drop, expected] of [[FL.hardFallHeight * 0.6, 3], [FL.hardFallHeight + 20, 2]]) {
+    const s = sim(3, fallCfg);
     const p = s.world.platforms[1];
     placeInAir(s, p.x + p.w / 2, p.y - H - drop);
     const seen = run(s, 4, 0, (x) => x.bird.state === 'rest');
@@ -96,14 +101,14 @@ test('a long free fall onto a platform costs a heart; a short one does not', () 
 });
 
 test('braking a dive with sound resets the fall height', () => {
-  const s = sim();
+  const s = sim(3, fallCfg);
   const p = s.world.platforms[1];
-  placeInAir(s, p.x + p.w / 2, p.y - H - (L.hardFallHeight + 30));
+  placeInAir(s, p.x + p.w / 2, p.y - H - (FL.hardFallHeight + 30));
   // fall most of the way, brake with a burst of sound until the bird goes up, then drop the rest
   let braked = false;
   run(s, 4, (x) => {
     if (x.bird.vy < 0) braked = true;
-    return !braked && x.bird.fallHeight > L.hardFallHeight * 0.5 ? 1 : 0;
+    return !braked && x.bird.fallHeight > FL.hardFallHeight * 0.5 ? 1 : 0;
   }, () => braked);
   assert.ok(braked && s.bird.fallHeight < 1, 'apex reset while going up');
   run(s, 4, 0, (x) => x.bird.state === 'rest');
@@ -125,10 +130,10 @@ test('losing the last heart in the air: KO tumble, then dead', () => {
 });
 
 test('losing the last heart on a hard landing: dead on the platform', () => {
-  const s = sim();
+  const s = sim(3, fallCfg);
   s.bird.lives = 1;
   const p = s.world.platforms[1];
-  placeInAir(s, p.x + p.w / 2, p.y - H - (L.hardFallHeight + 30));
+  placeInAir(s, p.x + p.w / 2, p.y - H - (FL.hardFallHeight + 30));
   run(s, 4, 0, (x) => x.dead);
   assert.ok(s.dead);
   assert.ok(s.bird.deadOnGround);

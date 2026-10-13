@@ -80,7 +80,7 @@ export class UI {
     bind('btnPauseMenu', () => this.h.toMenu());
     bind('btnAgain', () => this.h.again());
     bind('btnResMenu', () => this.h.toMenu());
-    for (const id of ['btnMuteHud', 'btnMuteMenu']) bind(id, () => this.h.toggleMute());
+    for (const id of ['btnMuteHud']) bind(id, () => this.h.toggleMute());
     bind('btnSettings', () => this.h.settings());
     bind('btnCalibGo', () => this.h.calibGo());
     bind('btnCalibSkip', () => this.h.calibSkip());
@@ -114,7 +114,7 @@ export class UI {
   }
 
   setMuted(m) {
-    for (const id of ['btnMuteHud', 'btnMuteMenu']) {
+    for (const id of ['btnMuteHud']) {
       const b = $(id);
       b.innerHTML = m ? MUTE_OFF_SVG : MUTE_ON_SVG;
       b.setAttribute('aria-label', m ? 'Unmute sound effects' : 'Mute sound effects');

@@ -93,8 +93,8 @@ export const CONFIG = {
   lives: {
     max: 3,               // hearts per run
     invulnerable: 1.5,    // seconds of blinking immunity after losing a heart
-    hardFallHeight: 100,  // landing after free-falling this many px (from the highest point
-                          // since the bird last went up) costs a heart. A quarter of the playfield.
+    hardFallHeight: 200,  // landing after free-falling this many px (from the highest point
+                          // since the bird last went up) costs a heart. About 60% of the playfield (320 px).
     warnFraction: 0.75,   // show the "!" warning over the bird from this fraction of hardFallHeight
   },
 

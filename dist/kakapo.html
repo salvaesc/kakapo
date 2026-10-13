@@ -320,10 +320,6 @@ button { font-family: inherit; }
         <div class="panel menu-panel">
           <p class="tagline">Make noise to fly.<br>Stay quiet to fall.</p>
           <button id="btnPlay" class="btn btn-primary">Play</button>
-          <div class="row">
-            <span id="micChip" class="chip" role="status">Mic: not enabled yet</span>
-            <button id="btnMuteMenu" class="icon-btn small mute-btn" aria-label="Mute sound effects"></button>
-          </div>
           <div class="row links">
             <button id="btnTouchMode" class="link-btn">Play with touch instead</button>
             <button id="btnSettings" class="link-btn">Settings</button>
@@ -383,6 +379,7 @@ button { font-family: inherit; }
       <section id="settings" class="screen hidden">
         <div class="panel">
           <h2>Settings</h2>
+          <p class="row"><span id="micChip" class="chip" role="status">Mic: not enabled yet</span></p>
           <button id="btnSetCamera" class="btn btn-secondary toggle" aria-pressed="true">Camera background: ON</button>
           <p id="camNote" class="small"></p>
           <button id="btnSetRecord" class="btn btn-secondary toggle" aria-pressed="true">Save a video of each run: ON</button>
@@ -533,8 +530,8 @@ const CONFIG = {
   lives: {
     max: 3,               // hearts per run
     invulnerable: 1.5,    // seconds of blinking immunity after losing a heart
-    hardFallHeight: 100,  // landing after free-falling this many px (from the highest point
-                          // since the bird last went up) costs a heart. A quarter of the playfield.
+    hardFallHeight: 200,  // landing after free-falling this many px (from the highest point
+                          // since the bird last went up) costs a heart. About 60% of the playfield (320 px).
     warnFraction: 0.75,   // show the "!" warning over the bird from this fraction of hardFallHeight
   },
 
@@ -4082,7 +4079,7 @@ class UI {
     bind('btnPauseMenu', () => this.h.toMenu());
     bind('btnAgain', () => this.h.again());
     bind('btnResMenu', () => this.h.toMenu());
-    for (const id of ['btnMuteHud', 'btnMuteMenu']) bind(id, () => this.h.toggleMute());
+    for (const id of ['btnMuteHud']) bind(id, () => this.h.toggleMute());
     bind('btnSettings', () => this.h.settings());
     bind('btnCalibGo', () => this.h.calibGo());
     bind('btnCalibSkip', () => this.h.calibSkip());
@@ -4116,7 +4113,7 @@ class UI {
   }
 
   setMuted(m) {
-    for (const id of ['btnMuteHud', 'btnMuteMenu']) {
+    for (const id of ['btnMuteHud']) {
       const b = $(id);
       b.innerHTML = m ? MUTE_OFF_SVG : MUTE_ON_SVG;
       b.setAttribute('aria-label', m ? 'Unmute sound effects' : 'Mute sound effects');

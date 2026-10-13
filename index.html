@@ -36,10 +36,6 @@
         <div class="panel menu-panel">
           <p class="tagline">Make noise to fly.<br>Stay quiet to fall.</p>
           <button id="btnPlay" class="btn btn-primary">Play</button>
-          <div class="row">
-            <span id="micChip" class="chip" role="status">Mic: not enabled yet</span>
-            <button id="btnMuteMenu" class="icon-btn small mute-btn" aria-label="Mute sound effects"></button>
-          </div>
           <div class="row links">
             <button id="btnTouchMode" class="link-btn">Play with touch instead</button>
             <button id="btnSettings" class="link-btn">Settings</button>
@@ -99,6 +95,7 @@
       <section id="settings" class="screen hidden">
         <div class="panel">
           <h2>Settings</h2>
+          <p class="row"><span id="micChip" class="chip" role="status">Mic: not enabled yet</span></p>
           <button id="btnSetCamera" class="btn btn-secondary toggle" aria-pressed="true">Camera background: ON</button>
           <p id="camNote" class="small"></p>
           <button id="btnSetRecord" class="btn btn-secondary toggle" aria-pressed="true">Save a video of each run: ON</button>

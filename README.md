@@ -75,7 +75,7 @@ The kakapo has **3 hearts** per run (top left). He loses:
 | Hitting the canopy with your head (flying up into it) | 1 heart |
 | Bumping into the side of a hanging canopy mass | nothing (knock-back) |
 | Hitting an island from below | nothing (bounce) |
-| Landing after a long free fall (≥ 100 px, almost a third of the screen) | 1 heart |
+| Landing after a long free fall (≥ 200 px, about 60% of the screen) | 1 heart |
 | Touching a burning island (he bounces off with hot feet; no resting there) | 1 heart |
 | Falling into the river | all hearts |
 | A leaping shark, a lunging eel, a giant wave or a waterspout | all hearts |
@@ -113,7 +113,7 @@ Everything lives in **`js/config.js`** — no magic numbers elsewhere. The ones 
 | `mic.constraints` | AEC on, NS/AGC off | AGC off keeps loudness meaningful; echo cancellation keeps sound effects out of the mic. |
 | `lives.max` | 3 | Hearts per run. |
 | `lives.invulnerable` | 1.5 s | Blinking immunity after losing a heart. |
-| `lives.hardFallHeight` | 100 px | Free-fall height that hurts on landing (playfield is 320 px tall). |
+| `lives.hardFallHeight` | 200 px | Free-fall height that hurts on landing (playfield is 320 px tall). |
 | `lives.warnFraction` | 0.75 | When the “!” warning appears, as a fraction of `hardFallHeight`. |
 | `ceiling.*` | — | Canopy maze: chances of clearings and hanging masses, how low they hang, clearance kept above islands. |
 | `hazards.enabled` | true | Turns sharks, waves, waterspouts and burning islands on/off. |

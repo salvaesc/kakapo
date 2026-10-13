@@ -115,7 +115,7 @@ def main():
             pg.on('pageerror', lambda e: errors.append(str(e)))
             pg.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
             pg.goto(URL); time.sleep(0.5)
-            check('not enabled' in pg.inner_text('#micChip'), 'menu does not claim mic access before permission')
+            check('not enabled' in pg.text_content('#micChip'), 'menu does not claim mic access before permission')
             pg.tap('#btnPlay'); time.sleep(0.2)
             check(pg.is_visible('#permission'), 'permission explanation shown before asking')
             pg.tap('#btnAllowMic'); time.sleep(0.5)
@@ -188,7 +188,7 @@ def main():
             check(pg.is_visible('#micError'), 'error screen shown')
             check('denied' in pg.inner_text('#micErrorText').lower(), 'useful error message')
             pg.tap('#btnErrBack'); time.sleep(0.2)
-            check('blocked' in pg.inner_text('#micChip').lower(), 'menu status honestly says blocked')
+            check('blocked' in pg.text_content('#micChip').lower(), 'menu status honestly says blocked')
             pg.tap('#btnTouchMode'); time.sleep(0.3)
             check(state(pg)['mode'] == 'ready', 'touch fallback starts a run')
             # press & hold on the game area
@@ -224,7 +224,7 @@ def main():
             pg.evaluate("window.__kakapo.setLevel(0.55)"); time.sleep(1.2)
             pg.evaluate("window.__kakapo.setLevel(0)")
             t0 = time.time()
-            while time.time() - t0 < 10 and state(pg)['mode'] != 'results':
+            while time.time() - t0 < 20 and state(pg)['mode'] != 'results':
                 if state(pg)['bird'] == 'rest':  # landed again: hop off further
                     pg.evaluate("window.__kakapo.setLevel(0.55)"); time.sleep(1.4); pg.evaluate("window.__kakapo.setLevel(0)")
                 time.sleep(0.2)
