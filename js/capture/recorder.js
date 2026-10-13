@@ -3,12 +3,26 @@
 // The video stays in memory on this device; it is only shared if the player taps Share.
 import { load, save } from '../core/storage.js';
 
-const TYPES = [
-  ['video/mp4;codecs=avc1,mp4a', 'mp4'],
-  ['video/mp4', 'mp4'],
+// MP4 with AAC sound first: it plays with sound everywhere (Windows player, WhatsApp, iPhone).
+// A plain 'video/mp4' in Chrome means Opus sound inside MP4, which many players open
+// SILENT, so Chrome without AAC gets WebM (Opus in WebM is understood); Safari's plain
+// 'video/mp4' is H.264 + AAC, so it keeps it.
+const AAC = [
+  'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+  'video/mp4;codecs=avc1.4D401F,mp4a.40.2',
+  'video/mp4;codecs=avc1.640028,mp4a.40.2',
+  'video/mp4;codecs=avc1,mp4a.40.2',
+  'video/mp4;codecs=avc3,mp4a.40.2',
+];
+const isSafari = () => typeof navigator !== 'undefined'
+  && /safari/i.test(navigator.userAgent) && !/chrome|chromium|crios|fxios|edg|android/i.test(navigator.userAgent);
+const TYPES = () => [
+  ...AAC.map((t) => [t, 'mp4']),
+  ...(isSafari() ? [['video/mp4', 'mp4']] : []),
   ['video/webm;codecs=vp9,opus', 'webm'],
   ['video/webm;codecs=vp8,opus', 'webm'],
   ['video/webm', 'webm'],
+  ['video/mp4', 'mp4'],
 ];
 
 export class Recorder {
@@ -29,7 +43,7 @@ export class Recorder {
     const hasRecorder = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined';
     const hasCapture = typeof HTMLCanvasElement !== 'undefined' && 'captureStream' in HTMLCanvasElement.prototype;
     if (hasRecorder && hasCapture) {
-      for (const [t, ext] of TYPES) {
+      for (const [t, ext] of TYPES()) {
         if (!MediaRecorder.isTypeSupported || MediaRecorder.isTypeSupported(t)) { this.mime = t; this.ext = ext; break; }
       }
     }

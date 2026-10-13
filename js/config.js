@@ -158,7 +158,7 @@ export const CONFIG = {
     fps: 24,
     maxHeight: 720,       // the video is scaled down to this height (vertical, phone-shaped)
     videoBps: 800000,     // ~0.1 MB per second of video: light enough to share
-    audioBps: 48000,
+    audioBps: 64000,      // AAC: some encoders sound bad (or drop audio) below this
     maxSeconds: 180,      // longer runs stop recording here
     afterDeathSec: 5,     // keeps recording this long after dying, to catch the reaction
     voiceGain: 1.8,       // your voice in the video, relative to the game's sound effects

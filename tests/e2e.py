@@ -80,6 +80,11 @@ def video_voice_check(pg):
     wav = os.path.join(TMP, 'kakapo-e2e-run.wav')
     open(vid, 'wb').write(base64.b64decode(data))
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', vid, '-ac', '1', '-ar', '16000', wav], check=True)
+    if shutil.which('ffprobe'):
+        codecs = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_type,codec_name', '-of', 'csv=p=0', vid],
+                                capture_output=True, text=True).stdout.split()
+        print('     video streams:', ' '.join(codecs))
+        check(any('audio' in c for c in codecs), 'the video file has a sound track')
     with wave.open(wav) as w:
         x = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32)
     spec = np.abs(np.fft.rfft(x * np.hanning(len(x))))
