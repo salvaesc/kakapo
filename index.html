@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#16363a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="KAKAPO — a voice-controlled pixel-art platformer. Make noise to fly. Stay quiet to fall.">
+  <title>KAKAPO</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='6' height='6' fill='%2357a53d'/%3E%3Crect x='4' y='2' width='3' height='4' fill='%23bfe06c'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23000'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%23000'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <div id="stage">
+      <canvas id="game" aria-label="KAKAPO game"></canvas>
+
+      <!-- In-game controls -->
+      <div id="hud" class="hidden">
+        <button id="btnPause" class="icon-btn" aria-label="Pause">
+          <svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="2" y="1" width="1.5" height="6"/><rect x="4.5" y="1" width="1.5" height="6"/></svg>
+        </button>
+        <button id="btnMuteHud" class="icon-btn mute-btn" aria-label="Mute sound effects"></button>
+      </div>
+      <div id="hint" class="hint hidden" aria-live="polite"></div>
+
+      <!-- Main menu -->
+      <section id="menu" class="screen">
+        <div class="menu-top">
+          <canvas id="titleCanvas" class="pixel title-canvas" width="52" height="14" aria-label="KAKAPO"></canvas>
+          <p class="subtitle">a very determined parrot</p>
+        </div>
+        <div class="menu-mid"><canvas id="heroCanvas" class="pixel hero-canvas" width="40" height="34" aria-hidden="true"></canvas></div>
+        <div class="panel menu-panel">
+          <p class="tagline">Squeak high to fly.<br>Stay quiet to fall.</p>
+          <button id="btnPlay" class="btn btn-primary">Play</button>
+          <div class="row">
+            <span id="micChip" class="chip" role="status">Mic: not enabled yet</span>
+            <button id="btnMuteMenu" class="icon-btn small mute-btn" aria-label="Mute sound effects"></button>
+          </div>
+          <div class="row links">
+            <button id="btnTouchMode" class="link-btn">Play with touch instead</button>
+            <button id="btnSettings" class="link-btn">Settings</button>
+          </div>
+          <p id="menuBest" class="best"></p>
+        </div>
+      </section>
+
+      <!-- Why we need the microphone -->
+      <section id="permission" class="screen hidden">
+        <div class="panel">
+          <h2>You are the controller</h2>
+          <p><b>Your voice</b> flies the kakapo: the higher you squeak, the higher and faster he goes. Talking normally does nothing. Silence lets him drop.</p>
+          <p><b>Your face</b> is the sky: the front camera becomes the background, and each run is saved as a short video you can share if you want.</p>
+          <p class="small">Everything stays on this device unless you tap Share. Your browser will ask for the microphone and the camera next. You can turn the camera off in Settings.</p>
+          <button id="btnAllowMic" class="btn btn-primary">Allow mic &amp; camera</button>
+          <button id="btnPermTouch" class="btn btn-secondary">Use touch instead</button>
+          <button id="btnPermBack" class="link-btn">Back</button>
+        </div>
+      </section>
+
+      <!-- Calibration -->
+      <section id="calib" class="screen hidden">
+        <div class="panel">
+          <h2 id="calibTitle">Calibrating…</h2>
+          <p id="calibText">Stay quiet for a moment.</p>
+          <div class="meter" aria-hidden="true"><div id="calibMeter" class="meter-fill"></div></div>
+          <div class="progress" aria-hidden="true"><div id="calibProgress" class="progress-fill"></div></div>
+          <p class="small" id="calibNote">This sets the noise floor so background sounds don’t make him fly.</p>
+        </div>
+      </section>
+
+      <!-- Microphone error / fallback -->
+      <section id="micError" class="screen hidden">
+        <div class="panel">
+          <h2>No microphone</h2>
+          <p id="micErrorText"></p>
+          <p class="small" id="micErrorHelp"></p>
+          <button id="btnRetryMic" class="btn btn-secondary">Try again</button>
+          <button id="btnErrTouch" class="btn btn-primary">Play with touch</button>
+          <button id="btnErrBack" class="link-btn">Back to menu</button>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="settings" class="screen hidden">
+        <div class="panel">
+          <h2>Settings</h2>
+          <button id="btnSetCamera" class="btn btn-secondary toggle" aria-pressed="true">Camera background: ON</button>
+          <p id="camNote" class="small"></p>
+          <button id="btnSetRecord" class="btn btn-secondary toggle" aria-pressed="true">Save a video of each run: ON</button>
+          <button id="btnSetSound" class="btn btn-secondary toggle" aria-pressed="true">Sound effects: ON</button>
+          <button id="btnRecalibrate" class="btn btn-secondary">Recalibrate voice</button>
+          <button id="btnSetBack" class="btn btn-primary">Done</button>
+        </div>
+      </section>
+
+      <!-- Pause -->
+      <section id="pause" class="screen hidden">
+        <div class="panel">
+          <h2>Paused</h2>
+          <button id="btnResume" class="btn btn-primary">Resume</button>
+          <button id="btnPauseMenu" class="btn btn-secondary">Menu</button>
+        </div>
+      </section>
+
+      <!-- Results -->
+      <section id="results" class="screen hidden">
+        <div class="panel results-panel">
+          <h2 id="resTitle">SPLASH!</h2>
+          <p id="resQuip" class="quip"></p>
+          <div class="score-big"><span id="resScore">0</span><span id="resNewBest" class="new-best hidden">NEW BEST!</span></div>
+          <div id="resVideoBox" class="res-video hidden">
+            <video id="resVideo" muted loop playsinline autoplay></video>
+            <p id="resVideoNote" class="small">Preparing your video…</p>
+            <div class="row res-video-btns">
+              <button id="btnShare" class="btn btn-primary hidden">Share video</button>
+              <button id="btnSave" class="btn btn-secondary hidden">Save video</button>
+            </div>
+          </div>
+          <dl class="stats">
+            <div><dt>Distance</dt><dd id="resDist">0 m</dd></div>
+            <div><dt>Landings</dt><dd id="resLand">0</dd></div>
+            <div><dt>Berries</dt><dd id="resBerries">0</dd></div>
+            <div><dt>Best</dt><dd id="resBest">0</dd></div>
+          </dl>
+          <button id="btnAgain" class="btn btn-primary btn-again">Fly again</button>
+          <button id="btnResMenu" class="link-btn">Menu</button>
+        </div>
+      </section>
+
+      <noscript><div class="screen"><div class="panel"><p>KAKAPO needs JavaScript.</p></div></div></noscript>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

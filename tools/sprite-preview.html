@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Kakapo sprite preview</title>
+<style>body{background:#7fd7e6;margin:0}canvas{image-rendering:pixelated;width:1920px}</style></head>
+<body><canvas id="c" width="320" height="200"></canvas>
+<script type="module">
+import { createPose, poseFor, drawKakapo } from '../js/render/kakapo.js';
+const ctx = document.getElementById('c').getContext('2d');
+ctx.imageSmoothingEnabled = false;
+const base = { state: 'rest', victoryT: 0, landT: 9, holdT: 0, restT: 0, intensity: 0, flapPhase: 0, takeoffT: 9, stun: 0, vy: 0, flyT: 0, deadT: 0 };
+const cases = [
+  ['idle', {}, 0.5], ['blink', {}, 3.3], ['sleep', { restT: 9 }, 1], ['land', { landT: 0.02 }, 1], ['windup', { holdT: 0.1 }, 1],
+  ['takeoff', { state: 'fly', takeoffT: 0.15 }, 1], ['fly up', { state: 'fly', intensity: 0.4, flapPhase: 0.1 }, 1], ['fly mid', { state: 'fly', intensity: 0.4, flapPhase: 0.5 }, 1],
+  ['fly down', { state: 'fly', intensity: 0.4, flapPhase: 0.8 }, 1], ['power', { state: 'fly', intensity: 0.9, flapPhase: 0.2 }, 1], ['power2', { state: 'fly', intensity: 0.9, flapPhase: 0.7, flyT: 3 }, 1],
+  ['glide', { state: 'fly', intensity: 0, vy: 50 }, 1], ['panic', { state: 'fly', vy: 180 }, 1.03], ['bonk', { state: 'fly', stun: 0.2 }, 1], ['victory', { victoryT: 1.2 }, 1], ['dead', { state: 'dead', deadT: 1 }, 1],
+];
+const pose = createPose();
+cases.forEach(([name, o, t], i) => {
+  const x = 20 + (i % 8) * 38, y = 40 + Math.floor(i / 8) * 80;
+  ctx.fillStyle = '#5b3a29'; ctx.fillRect(x - 14, y + 7, 28, 4);
+  poseFor(pose, { ...base, ...o }, t);
+  drawKakapo(ctx, x, y, pose);
+  ctx.fillStyle = '#123'; ctx.font = '7px monospace'; ctx.fillText(name, x - 14, y + 26);
+});
+document.title = 'ready';
+</script></body></html>
