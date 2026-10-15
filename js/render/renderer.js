@@ -9,6 +9,7 @@ import { createPose, poseFor, drawKakapo } from './kakapo.js';
 import { drawText } from './pixelfont.js';
 import { sharkAt, spoutAt, eelAt } from '../game/hazards.js';
 import { sinkDepth } from '../game/sim.js';
+import { t as tr } from '../i18n/i18n.js';
 
 const SH = { mode: 'hidden', x: 0, y: 0, dir: 1, u: 0 };
 const SP = { mode: 'off', x: 0, top: 0, k: 0 };
@@ -336,7 +337,7 @@ export class Renderer {
     const W = this.W, H = this.H;
     if (hud.showScore) {
       drawText(ctx, String(sim.score), W / 2, this.yOff + 6, { scale: 2, color: '#ffffff', outline: '#16363a', shadow: '#16363a', align: 'center' });
-      drawText(ctx, `${sim.metres}M`, 6, this.yOff + 8, { color: '#e4f2a0', outline: '#16363a' });
+      drawText(ctx, tr('hud.metres', { n: sim.metres }), 6, this.yOff + 8, { color: '#e4f2a0', outline: '#16363a' });
       // Hearts
       const b = sim.bird;
       for (let i = 0; i < this.cfg.lives.max; i++) {
@@ -349,7 +350,7 @@ export class Renderer {
         if (i === b.lives - 1 && b.lives === 1 && ((t * 3) | 0) % 2) dy = -1; // last heart throbs
         ctx.drawImage(img, 5 + i * 15, this.yOff + 17 + dy * 2, 14, 12);
       }
-      if (hud.best > 0) drawText(ctx, `BEST ${hud.best}`, W - 6, this.yOff + 8, { color: '#ffd84a', outline: '#16363a', align: 'right' });
+      if (hud.best > 0) drawText(ctx, tr('hud.best', { n: hud.best }), W - 6, this.yOff + 8, { color: '#ffd84a', outline: '#16363a', align: 'right' });
     }
     fx.drawBanner(ctx, W, this.yOff + 70);
 
@@ -400,7 +401,7 @@ export class Renderer {
     }
     // speaking but not high enough: tell them
     if (hud.tooLow && ((t * 4) | 0) % 2 === 0) {
-      drawText(ctx, 'HIGHER!', mx + 2, base - maxH - 10, { color: '#ffd84a', outline: '#16363a' });
+      drawText(ctx, tr('hud.higher'), mx + 2, base - maxH - 10, { color: '#ffd84a', outline: '#16363a' });
       const ax = mx + 33, ay = base - maxH - 11;   // up arrow
       rect(ctx, ax - 1, ay - 1, 5, 8, '#16363a');
       rect(ctx, ax + 1, ay, 1, 1, '#ffd84a');
@@ -408,7 +409,7 @@ export class Renderer {
       rect(ctx, ax + 1, ay + 2, 1, 4, '#ffd84a');
     }
     if (sim.resting && hud.showScore) {
-      drawText(ctx, 'SAFE', mx + n * 4 - 1, base - maxH - 10, { color: '#bdeee6', outline: '#16363a', align: 'right' });
+      drawText(ctx, tr('hud.safe'), mx + n * 4 - 1, base - maxH - 10, { color: '#bdeee6', outline: '#16363a', align: 'right' });
     }
   }
 }

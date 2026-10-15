@@ -3,6 +3,7 @@
 // mirrored like a selfie, and posterized to a few colour levels so it sits with the art.
 // Nothing is recorded or sent anywhere: frames go from the camera straight to the canvas.
 import { load, save } from '../core/storage.js';
+import { t as tr } from '../i18n/i18n.js';
 
 export class Camera {
   constructor(config) {
@@ -17,7 +18,7 @@ export class Camera {
     this._lut = new Uint8ClampedArray(256);
     this._lutLevels = 0;
     this.onStatus = null;
-    this._onEnded = () => { this.stop(); this.status = 'error'; this.error = 'The camera stopped.'; this.onStatus && this.onStatus(); };
+    this._onEnded = () => { this.stop(); this.status = 'error'; this.error = tr('cam.errStopped'); this.onStatus && this.onStatus(); };
   }
 
   get on() { return this.status === 'on' && this.video && this.video.readyState >= 2; }
@@ -27,13 +28,13 @@ export class Camera {
     if (this.status === 'on') return this.status;
     if (typeof window !== 'undefined' && window.isSecureContext === false) {
       this.status = 'insecure';
-      this.error = 'The camera needs a secure page (https:// or localhost).';
+      this.error = tr('cam.errInsecure');
       return this.status;
     }
     const md = typeof navigator !== 'undefined' ? navigator.mediaDevices : null;
     if (!md || !md.getUserMedia) {
       this.status = 'unavailable';
-      this.error = 'This browser cannot use the camera.';
+      this.error = tr('cam.errUnsupported');
       return this.status;
     }
     this.status = 'requesting';
@@ -47,8 +48,8 @@ export class Camera {
       const name = e && e.name;
       this.status = name === 'NotAllowedError' || name === 'SecurityError' ? 'denied'
         : name === 'NotFoundError' || name === 'OverconstrainedError' ? 'unavailable' : 'error';
-      this.error = this.status === 'denied' ? 'Camera permission was denied.'
-        : this.status === 'unavailable' ? 'No camera was found.' : `The camera could not start (${name || 'unknown error'}).`;
+      this.error = this.status === 'denied' ? tr('cam.errDenied')
+        : this.status === 'unavailable' ? tr('cam.errNotFound') : tr('cam.errStart', { name: name || tr('common.unknownError') });
       return this.status;
     }
     const v = document.createElement('video');

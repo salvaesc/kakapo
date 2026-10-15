@@ -294,16 +294,25 @@ button { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .hint, .new-best { animation: none; }
 }
+
+/* Settings: language picker (Español · Català · English) */
+.lang-row { display: flex; gap: 8px; width: 100%; margin: 2px 0 4px; }
+.lang-row .lang-btn { flex: 1; min-width: 0; padding-left: 4px; padding-right: 4px; font-size: 0.95em; }
+.lang-row .lang-btn.selected {
+  background: var(--lime);
+  color: var(--ink);
+  box-shadow: 0 0 0 var(--px) var(--ink), inset 0 var(--px) 0 var(--lime-hi), inset 0 calc(-2 * var(--px)) 0 var(--lime-lo);
+}
 </style>
 </head>
 <body>
   <div id="app">
     <div id="stage">
-      <canvas id="game" aria-label="KAKAPO game"></canvas>
+      <canvas id="game" aria-label="KAKAPO game" data-i18n-aria="app.canvasAria"></canvas>
 
       <!-- In-game controls -->
       <div id="hud" class="hidden">
-        <button id="btnPause" class="icon-btn" aria-label="Pause">
+        <button id="btnPause" class="icon-btn" aria-label="Pause" data-i18n-aria="hud.pauseAria">
           <svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="2" y="1" width="1.5" height="6"/><rect x="4.5" y="1" width="1.5" height="6"/></svg>
         </button>
         <button id="btnMuteHud" class="icon-btn mute-btn" aria-label="Mute sound effects"></button>
@@ -314,15 +323,15 @@ button { font-family: inherit; }
       <section id="menu" class="screen">
         <div class="menu-top">
           <canvas id="titleCanvas" class="pixel title-canvas" width="52" height="14" aria-label="KAKAPO"></canvas>
-          <p class="subtitle">a very determined parrot</p>
+          <p class="subtitle" data-i18n="menu.subtitle">a very determined parrot</p>
         </div>
         <div class="menu-mid"><canvas id="heroCanvas" class="pixel hero-canvas" width="40" height="34" aria-hidden="true"></canvas></div>
         <div class="panel menu-panel">
-          <p class="tagline">Make noise to fly.<br>Stay quiet to fall.</p>
-          <button id="btnPlay" class="btn btn-primary">Play</button>
+          <p class="tagline" data-i18n-html="menu.taglineHtml">Make noise to fly.<br>Stay quiet to fall.</p>
+          <button id="btnPlay" class="btn btn-primary" data-i18n="menu.play">Play</button>
           <div class="row links">
-            <button id="btnTouchMode" class="link-btn">Play with touch instead</button>
-            <button id="btnSettings" class="link-btn">Settings</button>
+            <button id="btnTouchMode" class="link-btn" data-i18n="menu.touch">Play with touch instead</button>
+            <button id="btnSettings" class="link-btn" data-i18n="menu.settings">Settings</button>
           </div>
           <p id="menuBest" class="best"></p>
         </div>
@@ -331,27 +340,27 @@ button { font-family: inherit; }
       <!-- Why we need the microphone -->
       <section id="permission" class="screen hidden">
         <div class="panel">
-          <h2>You are the controller</h2>
-          <p><b>Your voice</b> flies the kakapo: the louder your “aaah”, the higher and faster he goes; softer is slower. Silence lets him drop.</p>
-          <p><b>Your face</b> is the sky: the front camera becomes the background, and each run is saved as a short video you can share if you want.</p>
-          <p class="small">Everything stays on this device unless you tap Share. Your browser will ask for the microphone and the camera next. You can turn the camera off in Settings.</p>
-          <button id="btnAllowMic" class="btn btn-primary">Allow mic &amp; camera</button>
-          <button id="btnPermTouch" class="btn btn-secondary">Use touch instead</button>
-          <button id="btnPermBack" class="link-btn">Back</button>
+          <h2 data-i18n="perm.title">You are the controller</h2>
+          <p data-i18n-html="perm.voiceHtml"><b>Your voice</b> flies the kakapo: the louder your “aaah”, the higher and faster he goes; softer is slower. Silence lets him drop.</p>
+          <p data-i18n-html="perm.faceHtml"><b>Your face</b> is the sky: the front camera becomes the background, and each run is saved as a short video you can share if you want.</p>
+          <p class="small" data-i18n="perm.privacy">Everything stays on this device unless you tap Share. Your browser will ask for the microphone and the camera next. You can turn the camera off in Settings.</p>
+          <button id="btnAllowMic" class="btn btn-primary" data-i18n="perm.allow">Allow mic &amp; camera</button>
+          <button id="btnPermTouch" class="btn btn-secondary" data-i18n="perm.touch">Use touch instead</button>
+          <button id="btnPermBack" class="link-btn" data-i18n="common.back">Back</button>
         </div>
       </section>
 
       <!-- Calibration -->
       <section id="calib" class="screen hidden">
         <div class="panel calib-panel">
-          <ol class="calib-steps" aria-label="Steps">
-            <li id="cs1">Quiet</li><li id="cs2">Normal</li><li id="cs3">Squeak</li><li id="cs4">Try it</li>
+          <ol class="calib-steps" aria-label="Steps" data-i18n-aria="calib.stepsAria">
+            <li id="cs1" data-i18n="calib.step.quiet">Quiet</li><li id="cs2">Normal</li><li id="cs3" data-i18n="calib.step.squeak">Squeak</li><li id="cs4" data-i18n="calib.step.try">Try it</li>
           </ol>
-          <h2 id="calibTitle">Tune to your voice</h2>
+          <h2 id="calibTitle" data-i18n="calib.defaultTitle">Tune to your voice</h2>
           <p id="calibText"></p>
           <div id="calibViz" class="calib-viz">
-            <div class="viz-row"><span class="viz-label">Hearing</span><div class="meter"><div id="calibMeter" class="meter-fill"></div></div></div>
-            <div class="viz-row" id="pitchRow"><span class="viz-label">Pitch</span>
+            <div class="viz-row"><span class="viz-label" data-i18n="calib.hearing">Hearing</span><div class="meter"><div id="calibMeter" class="meter-fill"></div></div></div>
+            <div class="viz-row" id="pitchRow"><span class="viz-label" data-i18n="calib.pitch">Pitch</span>
               <div class="pitchbar"><div id="pitchZone" class="pitch-zone"></div><div id="pitchNormal" class="pitch-mark normal"></div><div id="pitchNow" class="pitch-mark now"></div></div>
             </div>
           </div>
@@ -359,26 +368,29 @@ button { font-family: inherit; }
           <div class="progress" aria-hidden="true"><div id="calibProgress" class="progress-fill"></div></div>
           <p class="small" id="calibNote"></p>
           <button id="btnCalibGo" class="btn btn-primary">Start</button>
-          <button id="btnCalibSkip" class="link-btn">Skip — use standard settings</button>
+          <button id="btnCalibSkip" class="link-btn" data-i18n="calib.skip">Skip — use standard settings</button>
         </div>
       </section>
 
       <!-- Microphone error / fallback -->
       <section id="micError" class="screen hidden">
         <div class="panel">
-          <h2>No microphone</h2>
+          <h2 data-i18n="micErr.title">No microphone</h2>
           <p id="micErrorText"></p>
           <p class="small" id="micErrorHelp"></p>
-          <button id="btnRetryMic" class="btn btn-secondary">Try again</button>
-          <button id="btnErrTouch" class="btn btn-primary">Play with touch</button>
-          <button id="btnErrBack" class="link-btn">Back to menu</button>
+          <button id="btnRetryMic" class="btn btn-secondary" data-i18n="micErr.retry">Try again</button>
+          <button id="btnErrTouch" class="btn btn-primary" data-i18n="micErr.touch">Play with touch</button>
+          <button id="btnErrBack" class="link-btn" data-i18n="micErr.back">Back to menu</button>
         </div>
       </section>
 
       <!-- Settings -->
       <section id="settings" class="screen hidden">
         <div class="panel">
-          <h2>Settings</h2>
+          <h2 data-i18n="settings.title">Settings</h2>
+          <div class="lang-row" role="group" aria-label="Language" data-i18n-aria="settings.language">
+            <button class="btn btn-secondary lang-btn" data-lang="es">Español</button><button class="btn btn-secondary lang-btn" data-lang="ca">Català</button><button class="btn btn-secondary lang-btn" data-lang="en">English</button>
+          </div>
           <p class="row"><span id="micChip" class="chip" role="status">Mic: not enabled yet</span></p>
           <button id="btnSetCamera" class="btn btn-secondary toggle" aria-pressed="true">Camera background: ON</button>
           <p id="camNote" class="small"></p>
@@ -387,17 +399,17 @@ button { font-family: inherit; }
           <button id="btnSetVibrate" class="btn btn-secondary toggle hidden" aria-pressed="true">Vibration: ON</button>
           <button id="btnSetMic" class="btn btn-secondary">Microphone: default</button>
           <p id="micNote" class="small"></p>
-          <button id="btnRecalibrate" class="btn btn-secondary">Recalibrate voice</button>
-          <button id="btnSetBack" class="btn btn-primary">Done</button>
+          <button id="btnRecalibrate" class="btn btn-secondary" data-i18n="settings.recalibrate">Recalibrate voice</button>
+          <button id="btnSetBack" class="btn btn-primary" data-i18n="settings.done">Done</button>
         </div>
       </section>
 
       <!-- Pause -->
       <section id="pause" class="screen hidden">
         <div class="panel">
-          <h2>Paused</h2>
-          <button id="btnResume" class="btn btn-primary">Resume</button>
-          <button id="btnPauseMenu" class="btn btn-secondary">Menu</button>
+          <h2 data-i18n="pause.title">Paused</h2>
+          <button id="btnResume" class="btn btn-primary" data-i18n="pause.resume">Resume</button>
+          <button id="btnPauseMenu" class="btn btn-secondary" data-i18n="pause.menu">Menu</button>
         </div>
       </section>
 
@@ -406,27 +418,27 @@ button { font-family: inherit; }
         <div class="panel results-panel">
           <h2 id="resTitle">SPLASH!</h2>
           <p id="resQuip" class="quip"></p>
-          <div class="score-big"><span id="resScore">0</span><span id="resNewBest" class="new-best hidden">NEW BEST!</span></div>
+          <div class="score-big"><span id="resScore">0</span><span id="resNewBest" class="new-best hidden" data-i18n="res.newBest">NEW BEST!</span></div>
           <div id="resVideoBox" class="res-video hidden">
             <video id="resVideo" muted loop playsinline autoplay></video>
             <p id="resVideoNote" class="small">Preparing your video…</p>
             <div class="row res-video-btns">
-              <button id="btnShare" class="btn btn-primary hidden">Share video</button>
-              <button id="btnSave" class="btn btn-secondary hidden">Save video</button>
+              <button id="btnShare" class="btn btn-primary hidden" data-i18n="res.share">Share video</button>
+              <button id="btnSave" class="btn btn-secondary hidden" data-i18n="res.save">Save video</button>
             </div>
           </div>
           <dl class="stats">
-            <div><dt>Distance</dt><dd id="resDist">0 m</dd></div>
-            <div><dt>Landings</dt><dd id="resLand">0</dd></div>
-            <div><dt>Berries</dt><dd id="resBerries">0</dd></div>
-            <div><dt>Best</dt><dd id="resBest">0</dd></div>
+            <div><dt data-i18n="res.distance">Distance</dt><dd id="resDist">0 m</dd></div>
+            <div><dt data-i18n="res.landings">Landings</dt><dd id="resLand">0</dd></div>
+            <div><dt data-i18n="res.berries">Berries</dt><dd id="resBerries">0</dd></div>
+            <div><dt data-i18n="res.best">Best</dt><dd id="resBest">0</dd></div>
           </dl>
-          <button id="btnAgain" class="btn btn-primary btn-again">Fly again</button>
-          <button id="btnResMenu" class="link-btn">Menu</button>
+          <button id="btnAgain" class="btn btn-primary btn-again" data-i18n="res.again">Fly again</button>
+          <button id="btnResMenu" class="link-btn" data-i18n="res.menu">Menu</button>
         </div>
       </section>
 
-      <noscript><div class="screen"><div class="panel"><p>KAKAPO needs JavaScript.</p></div></div></noscript>
+      <noscript><div class="screen"><div class="panel"><p>KAKAPO needs JavaScript. · KAKAPO necesita JavaScript. · KAKAPO necessita JavaScript.</p></div></div></noscript>
     </div>
   </div>
 
@@ -2114,12 +2126,22 @@ const G = {
   '!': '010010010000010', '+': '000010111010000', '-': '000000111000000', '.': '000000000000010',
   ':': '000010000010000', '/': '001001010100100', '?': '111001011000010', ' ': '000000000000000',
   "'": '010010000000000', 'x': '000101010101000',
+  // Spanish / Catalan
+  'Ñ': '111000111101101', '¡': '010000010010010', '¿': '010000010100111', '·': '000000010000000',
+  ',': '000000000010100',
 };
+
+/** Capitals without accents (the font has no accented letters), keeping Ñ. */
+function plainText(str) {
+  return String(str).toUpperCase().normalize('NFD')
+    .replace(/N\u0303/g, 'Ñ').replace(/[\u0300-\u036f]/g, '').replace(/[’‘]/g, "'");
+}
 
 const cache = new Map();
 
 /** Measures text width in logical pixels at the given scale. */
 function textWidth(str, scale = 1) {
+  str = plainText(str);
   return str.length ? (str.length * 4 - 1) * scale : 0;
 }
 
@@ -2141,7 +2163,7 @@ function glyphCanvas(ch, color) {
  * Draws text with an optional 1px outline/shadow. align: 'left' | 'center' | 'right'.
  */
 function drawText(ctx, str, x, y, { scale = 1, color = '#fff', outline = null, shadow = null, align = 'left' } = {}) {
-  str = String(str).toUpperCase();
+  str = plainText(str);
   const w = textWidth(str, scale);
   let x0 = Math.round(align === 'center' ? x - w / 2 : align === 'right' ? x - w : x);
   y = Math.round(y);
@@ -2158,10 +2180,964 @@ function drawText(ctx, str, x, y, { scale = 1, color = '#fff', outline = null, s
   return w;
 }
 
-return { textWidth, drawText };
+return { plainText, textWidth, drawText };
+})();
+// ---- js/core/storage.js
+__m[10] = (() => {
+// Local storage for non-sensitive data only (best score, preferences).
+// Every access is guarded: private mode or blocked storage must never break the game.
+const PREFIX = 'kakapo.';
+
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(PREFIX + key);
+    return raw == null ? fallback : JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function save(key, value) {
+  try {
+    localStorage.setItem(PREFIX + key, JSON.stringify(value));
+  } catch {
+    /* storage unavailable — ignore */
+  }
+}
+
+return { load, save };
+})();
+// ---- js/i18n/en.js
+__m[11] = (() => {
+// KAKAPO — every text the player can see, in English (the reference language).
+// es.js and ca.js have the same keys. {name} placeholders are filled in by the game.
+// Keys that end in "Html" may contain <b>, <br>. Texts drawn with the pixel font
+// (keys under fx., hud., end., title.) are shown in CAPITALS and without accents.
+const STRINGS = {
+  // language picker (each language names itself)
+  'lang.name': 'English',
+  'settings.language': 'Language',
+
+  // in-game buttons
+  'hud.pauseAria': 'Pause',
+  'hud.muteAria': 'Mute sound effects',
+  'hud.unmuteAria': 'Unmute sound effects',
+  'app.canvasAria': 'KAKAPO game',
+  'app.noscript': 'KAKAPO needs JavaScript.',
+
+  // main menu
+  'menu.subtitle': 'a very determined parrot',
+  'menu.taglineHtml': 'Make noise to fly.<br>Stay quiet to fall.',
+  'menu.play': 'Play',
+  'menu.touch': 'Play with touch instead',
+  'menu.settings': 'Settings',
+  'menu.best': 'Best: {n}',
+
+  // why we need the microphone and camera
+  'perm.title': 'You are the controller',
+  'perm.voiceHtml': '<b>Your voice</b> flies the kakapo: the louder your “aaah”, the higher and faster he goes; softer is slower. Silence lets him drop.',
+  'perm.faceHtml': '<b>Your face</b> is the sky: the front camera becomes the background, and each run is saved as a short video you can share if you want.',
+  'perm.privacy': 'Everything stays on this device unless you tap Share. Your browser will ask for the microphone and the camera next. You can turn the camera off in Settings.',
+  'perm.allow': 'Allow mic & camera',
+  'perm.touch': 'Use touch instead',
+  'common.back': 'Back',
+
+  // calibration
+  'calib.stepsAria': 'Steps',
+  'calib.step.quiet': 'Quiet',
+  'calib.step.normal': 'Normal',
+  'calib.step.loud': 'AAAH!',
+  'calib.step.squeak': 'Squeak',
+  'calib.step.try': 'Try it',
+  'calib.defaultTitle': 'Tune to your voice',
+  'calib.hearing': 'Hearing',
+  'calib.pitch': 'Pitch',
+  'calib.start': 'Start',
+  'calib.skip': 'Skip — use standard settings',
+  'calib.skipped': 'Using standard voice settings. You can tune it later in Settings.',
+  'calib.gotIt': '✓ Got it!',
+  'calib.gotItPlay': '✓ Got it! Let’s fly…',
+  'calib.introTitle': 'Tune the game to your voice',
+  'calib.introTextPitch': '3 short steps (about 20 seconds): a moment of silence, an “aaah” in your normal voice, and your best high squeak. Then a quick test.',
+  'calib.introTextVolume': '2 short steps (about 15 seconds): a moment of silence and a long, loud “AAAH”. Then a quick test.',
+  'calib.introHeard': 'I can hear you ✓',
+  'calib.introSaySomething': 'Say something — the “Hearing” bar should move.',
+  'calib.introNote': 'Hold the phone at chatting distance. With AirPods in, their microphone is used.',
+  'calib.quietTitlePitch': 'Step 1 · Shhh…',
+  'calib.quietTitle': '1 of 2 · Shhh…',
+  'calib.quietText': 'Stay quiet for a moment so the game learns your room’s noise.',
+  'calib.quietStatus': 'Listening to the room… {n}',
+  'calib.quietNote': 'Background sounds below this level will never make the kakapo fly.',
+  'calib.loudTitle': '2 of 2 · Shout “AAAAH!”',
+  'calib.loudText': 'A long, loud “AAAAAH!” — like you’re cheering. Keep it going until the bar fills.',
+  'calib.loudNote': 'This shout is the kakapo’s full speed. Softer = slower; talking won’t lift him.',
+  'calib.normalTitle': 'Step 2 · Your normal voice',
+  'calib.normalText': 'Say a long “aaaaah” in your normal speaking voice — like at the doctor’s. Keep it going.',
+  'calib.normalNote': 'This pitch will NOT make him fly — only higher ones will.',
+  'calib.deadInput': 'The microphone is giving no sound at all.',
+  'calib.retryMic': 'Retry microphone',
+  'calib.hearKeep': 'I hear you ✓ — keep going…',
+  'calib.hearKeepHz': 'I hear you ✓ {hz} — keep going…',
+  'calib.hearSomething': 'I hear something — hold a steady “aaah”.',
+  'calib.cantHear': 'I can’t hear you…',
+  'calib.waitAaah': 'Waiting for your “aaah”…',
+  'calib.noHearNote': 'Can’t hear you? Check the mic isn’t muted, hold the phone closer, or pick another microphone in Settings (AirPods mics are often weak — try the phone’s own mic).',
+  'calib.highTitle': 'Step 3 · Squeak!',
+  'calib.highText': 'Now a high squeak — “iiiiii!” — as high as you can WITHOUT straining. Like a tiny bird.',
+  'calib.highNote': 'Your normal voice: {normal} Hz. Get into the green zone (above {target} Hz).',
+  'calib.highYes': 'Yes! ✓ {hz} — hold it…',
+  'calib.highHigher': 'Higher! ↑ ({hz})',
+  'calib.highWait': 'Waiting for your squeak…',
+  'calib.tryTitlePitch': 'Step 4 · Try it',
+  'calib.tryTitle': 'Step 3 · Try it',
+  'calib.tryTextPitch': 'Squeak to fill the bar past the line for a second. Go quiet and it drops.',
+  'calib.tryTextVolume': 'Say “aaah” to fill the bar for a second. Louder = higher and faster, softer = slower, silence = drop.',
+  'calib.tryPlay': 'Play',
+  'calib.tryPlayReady': 'Play!',
+  'calib.tryNotePitch': 'Flying starts at {low} Hz, full speed at {high} Hz. You can redo this in Settings.',
+  'calib.tryNote': 'You can redo this in Settings.',
+  'calib.tryPassed': 'Perfect! The kakapo would be flying. You’re ready.',
+  'calib.tryTooLow': 'Higher! ↑ That’s your talking voice.',
+  'calib.tryFlying': 'Flying! ✓ Hold it…',
+  'calib.trySqueak': 'Squeak!',
+  'calib.tryAaah': 'Aaaah!',
+
+  // microphone problems
+  'micErr.title': 'No microphone',
+  'micErr.retry': 'Try again',
+  'micErr.touch': 'Play with touch',
+  'micErr.back': 'Back to menu',
+  'micErr.default': 'The microphone is not available.',
+  'micErr.helpTouch': 'You can still play with touch: press and hold to fly, release to fall.',
+  'micErr.helpEmbedded': 'This page is embedded and the microphone is blocked here. To play with your voice, open KAKAPO on its own https site.',
+  'micErr.helpDenied': 'To use your voice, allow the microphone for this site in your browser settings, then tap “Try again”.',
+  'micErr.helpInsecure': 'Open the game over https:// (or localhost).',
+  'mic.errStopped': 'The microphone stopped (another app may have taken it).',
+  'mic.errInsecure': 'Microphone needs a secure page (https:// or localhost).',
+  'mic.errUnsupported': 'This browser does not support microphone input.',
+  'mic.errDenied': 'Microphone permission was denied. You can allow it in the browser’s site settings.',
+  'mic.errNotFound': 'No microphone was found on this device.',
+  'mic.errStart': 'The microphone could not start ({name}).',
+  'mic.errAudio': 'Audio processing could not start on this browser.',
+  'common.unknownError': 'unknown error',
+
+  // microphone status (Settings)
+  'micChip.notYet': 'Mic: not enabled yet',
+  'micChip.touch': 'Touch mode',
+  'micChip.requesting': 'Mic: waiting for permission…',
+  'micChip.on': 'Mic: on',
+  'micChip.blocked': 'Mic: blocked',
+  'micChip.unavailable': 'Mic: unavailable',
+  'micChip.lost': 'Mic: disconnected',
+
+  // settings
+  'settings.title': 'Settings',
+  'settings.on': 'ON',
+  'settings.off': 'OFF',
+  'settings.camera': 'Camera background: {state}',
+  'settings.record': 'Save a video of each run: {state}',
+  'settings.recordUnsupported': 'Video: not supported in this browser',
+  'settings.sound': 'Sound effects: {state}',
+  'settings.vibrate': 'Vibration: {state}',
+  'settings.mic': 'Microphone: {label}',
+  'settings.micDefault': 'default',
+  'settings.micNotOn': 'not on yet',
+  'settings.micNoteOn': 'Tap to switch (e.g. AirPods ↔ phone mic).',
+  'settings.micNoteOff': 'Start a game to choose a microphone.',
+  'settings.micOnlyOne': 'Only one microphone available.',
+  'settings.micSwitched': 'Switched. Recalibrate your voice for this microphone.',
+  'settings.recalibrate': 'Recalibrate voice',
+  'settings.done': 'Done',
+
+  // camera
+  'cam.requesting': 'Waiting for camera permission…',
+  'cam.denied': 'The camera is blocked for this site. Allow it in the browser settings.',
+  'cam.unavailable': 'No camera found on this device.',
+  'cam.insecure': 'The camera needs https (or localhost).',
+  'cam.noteOn': 'Your face is the sky. Only shown on this screen.',
+  'cam.noteOff': 'The normal sky is shown instead.',
+  'cam.hintBlocked': 'Camera blocked — playing with the normal sky. You can allow it later.',
+  'cam.hintNone': 'No camera — playing with the normal sky.',
+  'cam.errStopped': 'The camera stopped.',
+  'cam.errInsecure': 'The camera needs a secure page (https:// or localhost).',
+  'cam.errUnsupported': 'This browser cannot use the camera.',
+  'cam.errDenied': 'Camera permission was denied.',
+  'cam.errNotFound': 'No camera was found.',
+  'cam.errStart': 'The camera could not start ({name}).',
+
+  // pause
+  'pause.title': 'Paused',
+  'pause.resume': 'Resume',
+  'pause.menu': 'Menu',
+
+  // results
+  'res.newBest': 'NEW BEST!',
+  'res.preparing': 'Preparing your video…',
+  'res.recording': '● REC — still recording your reaction… {n}',
+  'res.failed': 'The video could not be saved this time.',
+  'res.videoShare': 'Your run — share the embarrassment!',
+  'res.videoSave': 'Your run — save it and share it anywhere.',
+  'res.share': 'Share video',
+  'res.save': 'Save video',
+  'res.shareText': 'I yelled my way to {score} points in KAKAPO!',
+  'res.shareDialog': 'Share your run',
+  'res.shareFailed': 'Could not open the share menu. Try Save video.',
+  'res.saved': 'Saved ✓ {where}',
+  'res.saveFailed': 'Could not save here — opening the share menu instead.',
+  'res.distance': 'Distance',
+  'res.landings': 'Landings',
+  'res.berries': 'Berries',
+  'res.best': 'Best',
+  'res.again': 'Fly again',
+  'res.menu': 'Menu',
+  'res.tipFirst': 'Tip: keep making noise to fly, go quiet to land.',
+
+  // results title per cause of death (pixel font in the video)
+  'title.water': 'SPLASH!',
+  'title.ceiling': 'BONK!',
+  'title.underside': 'OUCH!',
+  'title.fall': 'SPLAT!',
+  'title.shark': 'CHOMP!',
+  'title.wave': 'WIPEOUT!',
+  'title.spout': 'WHOOSH!',
+  'title.fire': 'TOASTED!',
+  'title.eel': 'SNAP!',
+  'title.falcon': 'SNATCHED!',
+  'title.newRecord': 'NEW RECORD!',
+
+  // results jokes per cause of death (one is picked at random)
+  'quips.water': [
+    'He’s fine. Just a little damp.',
+    'Splash! The river says hi.',
+    'Short flight. Long bath.',
+    'Kakapo are flightless. You nearly proved otherwise.',
+  ],
+  'quips.ceiling': [
+    'Three bonks on the canopy. The canopy won.',
+    'Aim for the islands, not the treetops.',
+    'Big voice, tiny wings, sore head.',
+  ],
+  'quips.underside': [
+    'Islands are for landing on. From above.',
+    'He tried to go through. Islands disagree.',
+  ],
+  'quips.shark': [
+    'Sharks love a snack that announces itself.',
+    'The fin was the warning. The chomp was the punchline.',
+  ],
+  'quips.wave': [
+    'Surf’s up. Kakapo’s down.',
+    'Wait for the river to calm down next time.',
+  ],
+  'quips.spout': [
+    'Whoosh! He’s gone to see the clouds. Briefly.',
+    'Waterspouts come and go. Wait for the “go”.',
+  ],
+  'quips.eel': [
+    'The eel was hungrier than he was.',
+    'Bubbles in the river? Wait for the snap.',
+  ],
+  'quips.falcon': [
+    'Kārearea: 1. Kākāpō: 0.',
+    'Real kākāpō freeze when a falcon hunts. Try resting next time.',
+  ],
+  'quips.fire': [
+    'Lightly toasted kakapo.',
+    'Burning islands are for flying over, not landing on.',
+  ],
+  'quips.fall': [
+    'Gravity: 1. Kakapo: 0.',
+    'Next time, brake with a little “mmm” before landing.',
+    'He’ll walk it off. Eventually.',
+  ],
+
+  // hints during play
+  'hint.takeoffVoice': 'Make a sound to take off!',
+  'hint.takeoffPitch': 'Squeak HIGH to take off! “iiiiii!”',
+  'hint.takeoffTouch': 'Press & hold to fly!',
+  'hint.flyVoice': 'Louder = higher & faster. Go quiet to drop onto an island!',
+  'hint.flyPitch': 'Higher squeak = higher & faster. Go quiet to drop onto an island!',
+  'hint.flyTouch': 'Release to drop onto an island!',
+  'hint.safe': 'Safe! Rest as long as you like.',
+  'hint.falcon': 'Falcon! When the ! turns red, change height. Perched kakapo are invisible to it.',
+  'hazard.shark': 'Shark! When you see the fin, wait for the jump.',
+  'hazard.wave': 'Giant wave! Rest and cross when the river calms.',
+  'hazard.eel': 'Eel! Bubbles mean it’s about to jump. Wait, then cross.',
+  'hazard.spout': 'Waterspout! Wait on the island until it fades.',
+  'hazard.fire': 'Burning island ahead: fly over it, don’t land!',
+  'hazard.drop': 'Low canopy ahead: fly under it.',
+  'hurt.ceiling': 'Ouch! The canopy costs a heart.',
+  'hurt.fire': 'Hot! Burning islands aren’t for resting.',
+  'hurt.falcon': 'The falcon got you! Change height when its ! turns red.',
+  'hurt.underside': 'Don’t hit islands from below!',
+  'hurt.fall': 'Too high! Make a little noise to brake before landing.',
+
+  // pop-up words over the bird (pixel font)
+  'fx.perfect': 'PERFECT',
+  'fx.checkpoint': 'POHUTUKAWA!',
+  'fx.metres': '{n} M!',
+  'fx.chomp': 'CHOMP!',
+  'fx.snap': 'SNAP!',
+  'fx.frozen': 'FROZEN!',
+  'fx.whoosh': 'WHOOSH!',
+  'fx.hurt.fall': 'SPLAT!',
+  'fx.hurt.ceiling': 'BONK!',
+  'fx.hurt.underside': 'OUCH!',
+  'fx.hurt.fire': 'HOT!',
+  'fx.hurt.falcon': 'CLAW!',
+  'fx.hurt.default': 'OUCH!',
+
+  // in-game HUD (pixel font)
+  'hud.metres': '{n}M',
+  'hud.best': 'BEST {n}',
+  'hud.higher': 'HIGHER!',
+  'hud.safe': 'SAFE',
+  'hud.mic': 'MIC',
+  'hud.micOff': 'OFF',
+  'hud.touch': 'TAP',
+
+  // score card at the end of the video (pixel font)
+  'end.points': 'POINTS',
+  'end.stats': '{m} M  -  BEST {best}',
+  'end.tagline': 'SHOUT TO FLY',
+};
+
+return { STRINGS };
+})();
+// ---- js/i18n/es.js
+__m[12] = (() => {
+// KAKAPO — textos en español (España). Mismas claves que en.js.
+const STRINGS = {
+  'lang.name': 'Español',
+  'settings.language': 'Idioma',
+
+  'hud.pauseAria': 'Pausa',
+  'hud.muteAria': 'Silenciar efectos',
+  'hud.unmuteAria': 'Activar efectos',
+  'app.canvasAria': 'Juego KAKAPO',
+  'app.noscript': 'KAKAPO necesita JavaScript.',
+
+  'menu.subtitle': 'un loro muy decidido',
+  'menu.taglineHtml': 'Haz ruido para volar.<br>Calla para caer.',
+  'menu.play': 'Jugar',
+  'menu.touch': 'Jugar tocando la pantalla',
+  'menu.settings': 'Ajustes',
+  'menu.best': 'Récord: {n}',
+
+  'perm.title': 'Tú eres el mando',
+  'perm.voiceHtml': '<b>Tu voz</b> hace volar al kakapo: cuanto más fuerte sea tu «aaah», más alto y más rápido va; si bajas la voz, va más lento. En silencio, cae.',
+  'perm.faceHtml': '<b>Tu cara</b> es el cielo: la cámara frontal se convierte en el fondo, y cada partida se guarda en un vídeo cortito que puedes compartir si quieres.',
+  'perm.privacy': 'Todo se queda en este dispositivo salvo que pulses Compartir. Ahora el navegador te pedirá el micrófono y la cámara. Puedes apagar la cámara en Ajustes.',
+  'perm.allow': 'Permitir micro y cámara',
+  'perm.touch': 'Mejor jugar tocando',
+  'common.back': 'Volver',
+
+  'calib.stepsAria': 'Pasos',
+  'calib.step.quiet': 'Silencio',
+  'calib.step.normal': 'Normal',
+  'calib.step.loud': '¡AAAH!',
+  'calib.step.squeak': 'Agudo',
+  'calib.step.try': 'Prueba',
+  'calib.defaultTitle': 'Ajusta el juego a tu voz',
+  'calib.hearing': 'Te oigo',
+  'calib.pitch': 'Tono',
+  'calib.start': 'Empezar',
+  'calib.skip': 'Saltar: usar ajustes estándar',
+  'calib.skipped': 'Usando los ajustes de voz estándar. Puedes ajustarlos después en Ajustes.',
+  'calib.gotIt': '✓ ¡Listo!',
+  'calib.gotItPlay': '✓ ¡Listo! A volar…',
+  'calib.introTitle': 'Ajusta el juego a tu voz',
+  'calib.introTextPitch': '3 pasos cortos (unos 20 segundos): un momento de silencio, un «aaah» con tu voz normal y tu chillido más agudo. Después, una prueba rápida.',
+  'calib.introTextVolume': '2 pasos cortos (unos 15 segundos): un momento de silencio y un «AAAH» largo y fuerte. Después, una prueba rápida.',
+  'calib.introHeard': 'Te oigo ✓',
+  'calib.introSaySomething': 'Di algo: la barra «Te oigo» debería moverse.',
+  'calib.introNote': 'Sujeta el móvil a la distancia a la que hablarías con alguien. Si llevas los AirPods puestos, se usa su micrófono.',
+  'calib.quietTitlePitch': 'Paso 1 · Shhh…',
+  'calib.quietTitle': '1 de 2 · Shhh…',
+  'calib.quietText': 'Quédate en silencio un momento para que el juego aprenda el ruido de la habitación.',
+  'calib.quietStatus': 'Escuchando la habitación… {n}',
+  'calib.quietNote': 'Los ruidos de fondo por debajo de este nivel nunca harán volar al kakapo.',
+  'calib.loudTitle': '2 de 2 · Grita «¡AAAAH!»',
+  'calib.loudText': 'Un «¡AAAAAH!» largo y fuerte, como si animaras a tu equipo. Mantenlo hasta que se llene la barra.',
+  'calib.loudNote': 'Este grito será la velocidad máxima del kakapo. Más flojo = más lento; hablando no despega.',
+  'calib.normalTitle': 'Paso 2 · Tu voz normal',
+  'calib.normalText': 'Di un «aaaaah» largo con tu voz normal, como en el médico. Mantenlo.',
+  'calib.normalNote': 'Este tono NO le hará volar; solo los más agudos.',
+  'calib.deadInput': 'El micrófono no da ningún sonido.',
+  'calib.retryMic': 'Reintentar micrófono',
+  'calib.hearKeep': 'Te oigo ✓ ¡Sigue!…',
+  'calib.hearKeepHz': 'Te oigo ✓ {hz} ¡Sigue!…',
+  'calib.hearSomething': 'Oigo algo: mantén un «aaah» constante.',
+  'calib.cantHear': 'No te oigo…',
+  'calib.waitAaah': 'Esperando tu «aaah»…',
+  'calib.noHearNote': '¿No te oye? Comprueba que el micro no esté silenciado, acércate el móvil o elige otro micrófono en Ajustes (el micro de los AirPods suele ser flojo: prueba con el del propio móvil).',
+  'calib.highTitle': 'Paso 3 · ¡Chillido!',
+  'calib.highText': 'Ahora un chillido agudo, «¡iiiiii!», todo lo agudo que puedas SIN forzar. Como un pajarito.',
+  'calib.highNote': 'Tu voz normal: {normal} Hz. Llega a la zona verde (por encima de {target} Hz).',
+  'calib.highYes': '¡Sí! ✓ {hz}, mantenlo…',
+  'calib.highHigher': '¡Más agudo! ↑ ({hz})',
+  'calib.highWait': 'Esperando tu chillido…',
+  'calib.tryTitlePitch': 'Paso 4 · Pruébalo',
+  'calib.tryTitle': 'Paso 3 · Pruébalo',
+  'calib.tryTextPitch': 'Chilla para llenar la barra por encima de la línea durante un segundo. Si te callas, baja.',
+  'calib.tryTextVolume': 'Di «aaah» para llenar la barra durante un segundo. Más fuerte = más alto y más rápido, más flojo = más lento, silencio = cae.',
+  'calib.tryPlay': 'Jugar',
+  'calib.tryPlayReady': '¡A jugar!',
+  'calib.tryNotePitch': 'Empieza a volar a {low} Hz y va a tope a {high} Hz. Puedes repetirlo en Ajustes.',
+  'calib.tryNote': 'Puedes repetirlo en Ajustes.',
+  'calib.tryPassed': '¡Perfecto! El kakapo estaría volando. Ya estás listo.',
+  'calib.tryTooLow': '¡Más agudo! ↑ Esa es tu voz de hablar.',
+  'calib.tryFlying': '¡Volando! ✓ Mantenlo…',
+  'calib.trySqueak': '¡Chilla!',
+  'calib.tryAaah': '¡Aaaah!',
+
+  'micErr.title': 'Sin micrófono',
+  'micErr.retry': 'Reintentar',
+  'micErr.touch': 'Jugar tocando',
+  'micErr.back': 'Volver al menú',
+  'micErr.default': 'El micrófono no está disponible.',
+  'micErr.helpTouch': 'Puedes jugar tocando la pantalla: mantén pulsado para volar y suelta para caer.',
+  'micErr.helpEmbedded': 'Esta página está incrustada en otra y aquí el micrófono está bloqueado. Para jugar con la voz, abre KAKAPO en su propia web https.',
+  'micErr.helpDenied': 'Para usar la voz, permite el micrófono para esta web en los ajustes del navegador y pulsa «Reintentar».',
+  'micErr.helpInsecure': 'Abre el juego con https:// (o localhost).',
+  'mic.errStopped': 'El micrófono se ha parado (puede que otra app lo esté usando).',
+  'mic.errInsecure': 'El micrófono necesita una página segura (https:// o localhost).',
+  'mic.errUnsupported': 'Este navegador no permite usar el micrófono.',
+  'mic.errDenied': 'Se ha denegado el permiso del micrófono. Puedes permitirlo en los ajustes del sitio del navegador.',
+  'mic.errNotFound': 'No se ha encontrado ningún micrófono en este dispositivo.',
+  'mic.errStart': 'No se ha podido activar el micrófono ({name}).',
+  'mic.errAudio': 'No se ha podido iniciar el procesado de audio en este navegador.',
+  'common.unknownError': 'error desconocido',
+
+  'micChip.notYet': 'Micro: aún no activado',
+  'micChip.touch': 'Modo táctil',
+  'micChip.requesting': 'Micro: esperando permiso…',
+  'micChip.on': 'Micro: activado',
+  'micChip.blocked': 'Micro: bloqueado',
+  'micChip.unavailable': 'Micro: no disponible',
+  'micChip.lost': 'Micro: desconectado',
+
+  'settings.title': 'Ajustes',
+  'settings.on': 'SÍ',
+  'settings.off': 'NO',
+  'settings.camera': 'Cámara de fondo: {state}',
+  'settings.record': 'Guardar vídeo de cada partida: {state}',
+  'settings.recordUnsupported': 'Vídeo: no disponible en este navegador',
+  'settings.sound': 'Efectos de sonido: {state}',
+  'settings.vibrate': 'Vibración: {state}',
+  'settings.mic': 'Micrófono: {label}',
+  'settings.micDefault': 'predeterminado',
+  'settings.micNotOn': 'aún no activado',
+  'settings.micNoteOn': 'Pulsa para cambiar (p. ej., AirPods ↔ micro del móvil).',
+  'settings.micNoteOff': 'Empieza una partida para elegir micrófono.',
+  'settings.micOnlyOne': 'Solo hay un micrófono disponible.',
+  'settings.micSwitched': 'Cambiado. Vuelve a calibrar tu voz con este micrófono.',
+  'settings.recalibrate': 'Volver a calibrar la voz',
+  'settings.done': 'Hecho',
+
+  'cam.requesting': 'Esperando el permiso de la cámara…',
+  'cam.denied': 'La cámara está bloqueada para esta web. Permítela en los ajustes del navegador.',
+  'cam.unavailable': 'No se ha encontrado cámara en este dispositivo.',
+  'cam.insecure': 'La cámara necesita https (o localhost).',
+  'cam.noteOn': 'Tu cara es el cielo. Solo se ve en esta pantalla.',
+  'cam.noteOff': 'Se muestra el cielo normal.',
+  'cam.hintBlocked': 'Cámara bloqueada: juegas con el cielo normal. Puedes permitirla más tarde.',
+  'cam.hintNone': 'Sin cámara: juegas con el cielo normal.',
+  'cam.errStopped': 'La cámara se ha parado.',
+  'cam.errInsecure': 'La cámara necesita una página segura (https:// o localhost).',
+  'cam.errUnsupported': 'Este navegador no puede usar la cámara.',
+  'cam.errDenied': 'Se ha denegado el permiso de la cámara.',
+  'cam.errNotFound': 'No se ha encontrado ninguna cámara.',
+  'cam.errStart': 'No se ha podido activar la cámara ({name}).',
+
+  'pause.title': 'Pausa',
+  'pause.resume': 'Continuar',
+  'pause.menu': 'Menú',
+
+  'res.newBest': '¡NUEVO RÉCORD!',
+  'res.preparing': 'Preparando tu vídeo…',
+  'res.recording': '● REC: sigo grabando tu reacción… {n}',
+  'res.failed': 'Esta vez no se ha podido guardar el vídeo.',
+  'res.videoShare': 'Tu partida: ¡comparte el ridículo!',
+  'res.videoSave': 'Tu partida: guárdala y compártela donde quieras.',
+  'res.share': 'Compartir vídeo',
+  'res.save': 'Guardar vídeo',
+  'res.shareText': '¡He hecho {score} puntos a grito pelado en KAKAPO!',
+  'res.shareDialog': 'Comparte tu partida',
+  'res.shareFailed': 'No se ha podido abrir el menú de compartir. Prueba con Guardar vídeo.',
+  'res.saved': 'Guardado ✓ {where}',
+  'res.saveFailed': 'No se ha podido guardar aquí: abro el menú de compartir.',
+  'res.distance': 'Distancia',
+  'res.landings': 'Aterrizajes',
+  'res.berries': 'Bayas',
+  'res.best': 'Récord',
+  'res.again': 'Volar otra vez',
+  'res.menu': 'Menú',
+  'res.tipFirst': 'Consejo: haz ruido para volar y calla para aterrizar.',
+
+  'title.water': '¡CHOF!',
+  'title.ceiling': '¡TOC!',
+  'title.underside': '¡AY!',
+  'title.fall': '¡PLAF!',
+  'title.shark': '¡ÑAM!',
+  'title.wave': '¡REVOLCÓN!',
+  'title.spout': '¡FIUU!',
+  'title.fire': '¡TOSTADO!',
+  'title.eel': '¡ZAS!',
+  'title.falcon': '¡ATRAPADO!',
+  'title.newRecord': '¡NUEVO RÉCORD!',
+
+  'quips.water': [
+    'Está bien. Solo un poco mojado.',
+    '¡Chof! El río te manda saludos.',
+    'Vuelo corto. Baño largo.',
+    'Los kakapos no vuelan. Casi demuestras lo contrario.',
+  ],
+  'quips.ceiling': [
+    'Tres golpes contra las ramas. Ganaron las ramas.',
+    'Apunta a las islas, no a las copas de los árboles.',
+    'Mucha voz, alas pequeñitas, chichón asegurado.',
+  ],
+  'quips.underside': [
+    'Las islas son para aterrizar. Por arriba.',
+    'Intentó atravesarla. La isla no estaba de acuerdo.',
+  ],
+  'quips.shark': [
+    'A los tiburones les encanta un aperitivo que se anuncia a gritos.',
+    'La aleta era el aviso. El mordisco, el remate.',
+  ],
+  'quips.wave': [
+    'Buenas olas. Mal kakapo.',
+    'La próxima vez, espera a que el río se calme.',
+  ],
+  'quips.spout': [
+    '¡Fiuu! Se ha ido a ver las nubes. Un ratito.',
+    'Las trombas vienen y van. Espera a que se vayan.',
+  ],
+  'quips.eel': [
+    'La anguila tenía más hambre que él.',
+    '¿Burbujas en el río? Espera al mordisco.',
+  ],
+  'quips.falcon': [
+    'Kārearea: 1. Kākāpō: 0.',
+    'Los kākāpō de verdad se quedan quietos cuando caza un halcón. La próxima vez, descansa.',
+  ],
+  'quips.fire': [
+    'Kakapo ligeramente tostado.',
+    'Las islas en llamas son para sobrevolarlas, no para aterrizar.',
+  ],
+  'quips.fall': [
+    'Gravedad: 1. Kakapo: 0.',
+    'La próxima vez, frena con un «mmm» antes de aterrizar.',
+    'Ya se le pasará. Algún día.',
+  ],
+
+  'hint.takeoffVoice': '¡Haz ruido para despegar!',
+  'hint.takeoffPitch': '¡Chilla AGUDO para despegar! «¡iiiiii!»',
+  'hint.takeoffTouch': '¡Mantén pulsado para volar!',
+  'hint.flyVoice': 'Más fuerte = más alto y más rápido. ¡Calla para bajar a una isla!',
+  'hint.flyPitch': 'Más agudo = más alto y más rápido. ¡Calla para bajar a una isla!',
+  'hint.flyTouch': '¡Suelta para bajar a una isla!',
+  'hint.safe': '¡A salvo! Descansa todo lo que quieras.',
+  'hint.falcon': '¡Halcón! Cuando el ! se ponga rojo, cambia de altura. A un kakapo posado no lo ve.',
+  'hazard.shark': '¡Tiburón! Cuando veas la aleta, espera a que salte.',
+  'hazard.wave': '¡Ola gigante! Descansa y cruza cuando el río se calme.',
+  'hazard.eel': '¡Anguila! Las burbujas avisan de que va a saltar. Espera y luego cruza.',
+  'hazard.spout': '¡Tromba de agua! Espera en la isla hasta que desaparezca.',
+  'hazard.fire': 'Isla en llamas: sobrevuélala, ¡no aterrices!',
+  'hazard.drop': 'Ramas bajas: pasa por debajo.',
+  'hurt.ceiling': '¡Ay! Chocar con las ramas cuesta un corazón.',
+  'hurt.fire': '¡Quema! Las islas en llamas no son para descansar.',
+  'hurt.falcon': '¡Te ha pillado el halcón! Cambia de altura cuando su ! se ponga rojo.',
+  'hurt.underside': '¡No choques con las islas por debajo!',
+  'hurt.fall': '¡Demasiado alto! Haz un poco de ruido para frenar antes de aterrizar.',
+
+  'fx.perfect': '¡PERFECTO!',
+  'fx.checkpoint': '¡POHUTUKAWA!',
+  'fx.metres': '¡{n} M!',
+  'fx.chomp': '¡ÑAM!',
+  'fx.snap': '¡ZAS!',
+  'fx.frozen': '¡QUIETO!',
+  'fx.whoosh': '¡FIUU!',
+  'fx.hurt.fall': '¡PLAF!',
+  'fx.hurt.ceiling': '¡TOC!',
+  'fx.hurt.underside': '¡AY!',
+  'fx.hurt.fire': '¡QUEMA!',
+  'fx.hurt.falcon': '¡ZARPA!',
+  'fx.hurt.default': '¡AY!',
+
+  'hud.metres': '{n}M',
+  'hud.best': 'RÉCORD {n}',
+  'hud.higher': '¡MÁS!',
+  'hud.safe': 'OK',
+  'hud.mic': 'MIC',
+  'hud.micOff': 'NO',
+  'hud.touch': 'TOCA',
+
+  'end.points': 'PUNTOS',
+  'end.stats': '{m} M  -  RÉCORD {best}',
+  'end.tagline': 'GRITA PARA VOLAR',
+};
+
+return { STRINGS };
+})();
+// ---- js/i18n/ca.js
+__m[13] = (() => {
+// KAKAPO — textos en català. Mateixes claus que en.js.
+const STRINGS = {
+  'lang.name': 'Català',
+  'settings.language': 'Idioma',
+
+  'hud.pauseAria': 'Pausa',
+  'hud.muteAria': 'Silencia els efectes',
+  'hud.unmuteAria': 'Activa els efectes',
+  'app.canvasAria': 'Joc KAKAPO',
+  'app.noscript': 'KAKAPO necessita JavaScript.',
+
+  'menu.subtitle': 'un lloro molt decidit',
+  'menu.taglineHtml': 'Fes soroll per volar.<br>Calla per caure.',
+  'menu.play': 'Juga',
+  'menu.touch': 'Juga tocant la pantalla',
+  'menu.settings': 'Configuració',
+  'menu.best': 'Rècord: {n}',
+
+  'perm.title': 'Tu ets el comandament',
+  'perm.voiceHtml': '<b>La teva veu</b> fa volar el kakapo: com més fort sigui el teu «aaah», més amunt i més ràpid va; si abaixes la veu, va més a poc a poc. En silenci, cau.',
+  'perm.faceHtml': '<b>La teva cara</b> és el cel: la càmera frontal es converteix en el fons, i cada partida es desa en un vídeo curtet que pots compartir si vols.',
+  'perm.privacy': 'Tot es queda en aquest dispositiu tret que premis Comparteix. Ara el navegador et demanarà el micròfon i la càmera. Pots apagar la càmera a Configuració.',
+  'perm.allow': 'Permet micro i càmera',
+  'perm.touch': 'Millor jugar tocant',
+  'common.back': 'Enrere',
+
+  'calib.stepsAria': 'Passos',
+  'calib.step.quiet': 'Silenci',
+  'calib.step.normal': 'Normal',
+  'calib.step.loud': 'AAAH!',
+  'calib.step.squeak': 'Agut',
+  'calib.step.try': 'Prova',
+  'calib.defaultTitle': 'Ajusta el joc a la teva veu',
+  'calib.hearing': 'T’escolto',
+  'calib.pitch': 'To',
+  'calib.start': 'Comença',
+  'calib.skip': 'Omet: fes servir la configuració estàndard',
+  'calib.skipped': 'S’està fent servir la configuració de veu estàndard. Pots ajustar-la després a Configuració.',
+  'calib.gotIt': '✓ Fet!',
+  'calib.gotItPlay': '✓ Fet! A volar…',
+  'calib.introTitle': 'Ajusta el joc a la teva veu',
+  'calib.introTextPitch': '3 passos curts (uns 20 segons): un moment de silenci, un «aaah» amb la teva veu normal i el teu xiscle més agut. Després, una prova ràpida.',
+  'calib.introTextVolume': '2 passos curts (uns 15 segons): un moment de silenci i un «AAAH» llarg i fort. Després, una prova ràpida.',
+  'calib.introHeard': 'T’escolto ✓',
+  'calib.introSaySomething': 'Digues alguna cosa: la barra «T’escolto» s’hauria de moure.',
+  'calib.introNote': 'Aguanta el mòbil a la distància a què parlaries amb algú. Si portes els AirPods posats, es fa servir el seu micròfon.',
+  'calib.quietTitlePitch': 'Pas 1 · Xxxt…',
+  'calib.quietTitle': '1 de 2 · Xxxt…',
+  'calib.quietText': 'Queda’t en silenci un moment perquè el joc aprengui el soroll de l’habitació.',
+  'calib.quietStatus': 'Escoltant l’habitació… {n}',
+  'calib.quietNote': 'Els sorolls de fons per sota d’aquest nivell no faran volar mai el kakapo.',
+  'calib.loudTitle': '2 de 2 · Crida «AAAAH!»',
+  'calib.loudText': 'Un «AAAAAH!» llarg i fort, com si animessis el teu equip. Mantén-lo fins que s’ompli la barra.',
+  'calib.loudNote': 'Aquest crit serà la velocitat màxima del kakapo. Més fluix = més lent; parlant no s’enlaira.',
+  'calib.normalTitle': 'Pas 2 · La teva veu normal',
+  'calib.normalText': 'Digues un «aaaaah» llarg amb la teva veu normal, com al metge. Mantén-lo.',
+  'calib.normalNote': 'Aquest to NO el farà volar; només els més aguts.',
+  'calib.deadInput': 'El micròfon no dona cap so.',
+  'calib.retryMic': 'Torna a provar el micròfon',
+  'calib.hearKeep': 'T’escolto ✓ Continua!…',
+  'calib.hearKeepHz': 'T’escolto ✓ {hz} Continua!…',
+  'calib.hearSomething': 'Sento alguna cosa: mantén un «aaah» constant.',
+  'calib.cantHear': 'No t’escolto…',
+  'calib.waitAaah': 'Esperant el teu «aaah»…',
+  'calib.noHearNote': 'No et sent? Comprova que el micro no estigui silenciat, apropa’t el mòbil o tria un altre micròfon a Configuració (el micro dels AirPods sol ser fluix: prova amb el del mateix mòbil).',
+  'calib.highTitle': 'Pas 3 · Xiscle!',
+  'calib.highText': 'Ara un xiscle agut, «iiiiii!», tan agut com puguis SENSE forçar. Com un ocellet.',
+  'calib.highNote': 'La teva veu normal: {normal} Hz. Arriba a la zona verda (per sobre de {target} Hz).',
+  'calib.highYes': 'Sí! ✓ {hz}, mantén-lo…',
+  'calib.highHigher': 'Més agut! ↑ ({hz})',
+  'calib.highWait': 'Esperant el teu xiscle…',
+  'calib.tryTitlePitch': 'Pas 4 · Prova-ho',
+  'calib.tryTitle': 'Pas 3 · Prova-ho',
+  'calib.tryTextPitch': 'Xiscla per omplir la barra per sobre de la línia durant un segon. Si calles, baixa.',
+  'calib.tryTextVolume': 'Digues «aaah» per omplir la barra durant un segon. Més fort = més amunt i més ràpid, més fluix = més lent, silenci = cau.',
+  'calib.tryPlay': 'Juga',
+  'calib.tryPlayReady': 'A jugar!',
+  'calib.tryNotePitch': 'Comença a volar a {low} Hz i va a tota velocitat a {high} Hz. Pots repetir-ho a Configuració.',
+  'calib.tryNote': 'Pots repetir-ho a Configuració.',
+  'calib.tryPassed': 'Perfecte! El kakapo estaria volant. Ja estàs a punt.',
+  'calib.tryTooLow': 'Més agut! ↑ Aquesta és la teva veu de parlar.',
+  'calib.tryFlying': 'Volant! ✓ Mantén-lo…',
+  'calib.trySqueak': 'Xiscla!',
+  'calib.tryAaah': 'Aaaah!',
+
+  'micErr.title': 'Sense micròfon',
+  'micErr.retry': 'Torna-ho a provar',
+  'micErr.touch': 'Juga tocant',
+  'micErr.back': 'Torna al menú',
+  'micErr.default': 'El micròfon no està disponible.',
+  'micErr.helpTouch': 'Pots jugar tocant la pantalla: mantén premut per volar i deixa anar per caure.',
+  'micErr.helpEmbedded': 'Aquesta pàgina està incrustada en una altra i aquí el micròfon està bloquejat. Per jugar amb la veu, obre KAKAPO al seu propi web https.',
+  'micErr.helpDenied': 'Per fer servir la veu, permet el micròfon per a aquest web a la configuració del navegador i prem «Torna-ho a provar».',
+  'micErr.helpInsecure': 'Obre el joc amb https:// (o localhost).',
+  'mic.errStopped': 'El micròfon s’ha aturat (potser una altra app l’està fent servir).',
+  'mic.errInsecure': 'El micròfon necessita una pàgina segura (https:// o localhost).',
+  'mic.errUnsupported': 'Aquest navegador no permet fer servir el micròfon.',
+  'mic.errDenied': 'S’ha denegat el permís del micròfon. Pots permetre’l a la configuració del lloc del navegador.',
+  'mic.errNotFound': 'No s’ha trobat cap micròfon en aquest dispositiu.',
+  'mic.errStart': 'No s’ha pogut activar el micròfon ({name}).',
+  'mic.errAudio': 'No s’ha pogut iniciar el processament d’àudio en aquest navegador.',
+  'common.unknownError': 'error desconegut',
+
+  'micChip.notYet': 'Micro: encara no activat',
+  'micChip.touch': 'Mode tàctil',
+  'micChip.requesting': 'Micro: esperant permís…',
+  'micChip.on': 'Micro: activat',
+  'micChip.blocked': 'Micro: bloquejat',
+  'micChip.unavailable': 'Micro: no disponible',
+  'micChip.lost': 'Micro: desconnectat',
+
+  'settings.title': 'Configuració',
+  'settings.on': 'SÍ',
+  'settings.off': 'NO',
+  'settings.camera': 'Càmera de fons: {state}',
+  'settings.record': 'Desa un vídeo de cada partida: {state}',
+  'settings.recordUnsupported': 'Vídeo: no disponible en aquest navegador',
+  'settings.sound': 'Efectes de so: {state}',
+  'settings.vibrate': 'Vibració: {state}',
+  'settings.mic': 'Micròfon: {label}',
+  'settings.micDefault': 'predeterminat',
+  'settings.micNotOn': 'encara no activat',
+  'settings.micNoteOn': 'Prem per canviar (p. ex., AirPods ↔ micro del mòbil).',
+  'settings.micNoteOff': 'Comença una partida per triar el micròfon.',
+  'settings.micOnlyOne': 'Només hi ha un micròfon disponible.',
+  'settings.micSwitched': 'Canviat. Torna a calibrar la veu amb aquest micròfon.',
+  'settings.recalibrate': 'Torna a calibrar la veu',
+  'settings.done': 'Fet',
+
+  'cam.requesting': 'Esperant el permís de la càmera…',
+  'cam.denied': 'La càmera està bloquejada per a aquest web. Permet-la a la configuració del navegador.',
+  'cam.unavailable': 'No s’ha trobat cap càmera en aquest dispositiu.',
+  'cam.insecure': 'La càmera necessita https (o localhost).',
+  'cam.noteOn': 'La teva cara és el cel. Només es veu en aquesta pantalla.',
+  'cam.noteOff': 'Es mostra el cel normal.',
+  'cam.hintBlocked': 'Càmera bloquejada: jugues amb el cel normal. Pots permetre-la més tard.',
+  'cam.hintNone': 'Sense càmera: jugues amb el cel normal.',
+  'cam.errStopped': 'La càmera s’ha aturat.',
+  'cam.errInsecure': 'La càmera necessita una pàgina segura (https:// o localhost).',
+  'cam.errUnsupported': 'Aquest navegador no pot fer servir la càmera.',
+  'cam.errDenied': 'S’ha denegat el permís de la càmera.',
+  'cam.errNotFound': 'No s’ha trobat cap càmera.',
+  'cam.errStart': 'No s’ha pogut activar la càmera ({name}).',
+
+  'pause.title': 'Pausa',
+  'pause.resume': 'Continua',
+  'pause.menu': 'Menú',
+
+  'res.newBest': 'NOU RÈCORD!',
+  'res.preparing': 'Preparant el teu vídeo…',
+  'res.recording': '● REC: encara gravo la teva reacció… {n}',
+  'res.failed': 'Aquesta vegada no s’ha pogut desar el vídeo.',
+  'res.videoShare': 'La teva partida: comparteix el ridícul!',
+  'res.videoSave': 'La teva partida: desa-la i comparteix-la on vulguis.',
+  'res.share': 'Comparteix el vídeo',
+  'res.save': 'Desa el vídeo',
+  'res.shareText': 'He fet {score} punts a crit pelat a KAKAPO!',
+  'res.shareDialog': 'Comparteix la teva partida',
+  'res.shareFailed': 'No s’ha pogut obrir el menú per compartir. Prova amb Desa el vídeo.',
+  'res.saved': 'Desat ✓ {where}',
+  'res.saveFailed': 'No s’ha pogut desar aquí: obro el menú per compartir.',
+  'res.distance': 'Distància',
+  'res.landings': 'Aterratges',
+  'res.berries': 'Baies',
+  'res.best': 'Rècord',
+  'res.again': 'Torna a volar',
+  'res.menu': 'Menú',
+  'res.tipFirst': 'Consell: fes soroll per volar i calla per aterrar.',
+
+  'title.water': 'XOF!',
+  'title.ceiling': 'TOC!',
+  'title.underside': 'AI!',
+  'title.fall': 'PATAPAF!',
+  'title.shark': 'NYAM!',
+  'title.wave': 'REVOLCADA!',
+  'title.spout': 'FIUU!',
+  'title.fire': 'TORRAT!',
+  'title.eel': 'ZAS!',
+  'title.falcon': 'ATRAPAT!',
+  'title.newRecord': 'NOU RÈCORD!',
+
+  'quips.water': [
+    'Està bé. Només una mica mullat.',
+    'Xof! El riu et saluda.',
+    'Vol curt. Bany llarg.',
+    'Els kakapos no volen. Gairebé demostres el contrari.',
+  ],
+  'quips.ceiling': [
+    'Tres cops contra les branques. Han guanyat les branques.',
+    'Apunta a les illes, no a les capçades dels arbres.',
+    'Molta veu, ales petitones, nyanyo assegurat.',
+  ],
+  'quips.underside': [
+    'Les illes són per aterrar-hi. Per dalt.',
+    'Ha intentat travessar-la. L’illa no hi estava d’acord.',
+  ],
+  'quips.shark': [
+    'Als taurons els encanta un aperitiu que s’anuncia a crits.',
+    'L’aleta era l’avís. La queixalada, el final.',
+  ],
+  'quips.wave': [
+    'Bones onades. Mal kakapo.',
+    'La propera vegada, espera que el riu es calmi.',
+  ],
+  'quips.spout': [
+    'Fiuu! Ha anat a veure els núvols. Una estona.',
+    'Les mànegues d’aigua van i vénen. Espera que se’n vagin.',
+  ],
+  'quips.eel': [
+    'L’anguila tenia més gana que ell.',
+    'Bombolles al riu? Espera la queixalada.',
+  ],
+  'quips.falcon': [
+    'Kārearea: 1. Kākāpō: 0.',
+    'Els kākāpō de veritat es queden quiets quan caça un falcó. La propera vegada, descansa.',
+  ],
+  'quips.fire': [
+    'Kakapo lleugerament torrat.',
+    'Les illes en flames són per sobrevolar-les, no per aterrar-hi.',
+  ],
+  'quips.fall': [
+    'Gravetat: 1. Kakapo: 0.',
+    'La propera vegada, frena amb un «mmm» abans d’aterrar.',
+    'Ja li passarà. Algun dia.',
+  ],
+
+  'hint.takeoffVoice': 'Fes soroll per enlairar-te!',
+  'hint.takeoffPitch': 'Xiscla AGUT per enlairar-te! «iiiiii!»',
+  'hint.takeoffTouch': 'Mantén premut per volar!',
+  'hint.flyVoice': 'Més fort = més amunt i més ràpid. Calla per baixar a una illa!',
+  'hint.flyPitch': 'Més agut = més amunt i més ràpid. Calla per baixar a una illa!',
+  'hint.flyTouch': 'Deixa anar per baixar a una illa!',
+  'hint.safe': 'A salvo! Descansa tant com vulguis.',
+  'hint.falcon': 'Falcó! Quan el ! es posi vermell, canvia d’altura. Un kakapo posat no el veu.',
+  'hazard.shark': 'Tauró! Quan vegis l’aleta, espera que salti.',
+  'hazard.wave': 'Onada gegant! Descansa i creua quan el riu es calmi.',
+  'hazard.eel': 'Anguila! Les bombolles avisen que saltarà. Espera i després creua.',
+  'hazard.spout': 'Mànega d’aigua! Espera a l’illa fins que desaparegui.',
+  'hazard.fire': 'Illa en flames: sobrevola-la, no hi aterris!',
+  'hazard.drop': 'Branques baixes: passa per sota.',
+  'hurt.ceiling': 'Ai! Xocar amb les branques costa un cor.',
+  'hurt.fire': 'Crema! Les illes en flames no són per descansar.',
+  'hurt.falcon': 'T’ha enxampat el falcó! Canvia d’altura quan el seu ! es posi vermell.',
+  'hurt.underside': 'No xoquis amb les illes per sota!',
+  'hurt.fall': 'Massa amunt! Fes una mica de soroll per frenar abans d’aterrar.',
+
+  'fx.perfect': 'PERFECTE!',
+  'fx.checkpoint': 'POHUTUKAWA!',
+  'fx.metres': '{n} M!',
+  'fx.chomp': 'NYAM!',
+  'fx.snap': 'ZAS!',
+  'fx.frozen': 'QUIET!',
+  'fx.whoosh': 'FIUU!',
+  'fx.hurt.fall': 'PATAPAF!',
+  'fx.hurt.ceiling': 'TOC!',
+  'fx.hurt.underside': 'AI!',
+  'fx.hurt.fire': 'CREMA!',
+  'fx.hurt.falcon': 'URPA!',
+  'fx.hurt.default': 'AI!',
+
+  'hud.metres': '{n}M',
+  'hud.best': 'RÈCORD {n}',
+  'hud.higher': 'MÉS!',
+  'hud.safe': 'OK',
+  'hud.mic': 'MIC',
+  'hud.micOff': 'NO',
+  'hud.touch': 'TOCA',
+
+  'end.points': 'PUNTS',
+  'end.stats': '{m} M  -  RÈCORD {best}',
+  'end.tagline': 'CRIDA PER VOLAR',
+};
+
+return { STRINGS };
+})();
+// ---- js/i18n/i18n.js
+__m[14] = (() => {
+// Languages. The texts live in en.js / es.js / ca.js (same keys in each).
+// First visit: the browser's language decides (Catalan → ca, Spanish → es, anything
+// else → English). Once the player picks a language in Settings, that one is used
+// from then on.
+const { load, save } = __m[10];
+const { STRINGS: en } = __m[11];
+const { STRINGS: es } = __m[12];
+const { STRINGS: ca } = __m[13];
+const LANGS = { en, es, ca };
+const LANG_ORDER = ['es', 'ca', 'en'];
+
+/** Picks a supported language from a list like navigator.languages (['ca-ES', 'es', 'en']). */
+function detectLanguage(list) {
+  for (const l of list || []) {
+    const base = String(l).toLowerCase().split(/[-_]/)[0];
+    if (base === 'ca') return 'ca';
+    if (base === 'es' || base === 'gl' || base === 'eu' || base === 'ast') return 'es'; // Spain's other languages: Spanish
+    if (base === 'en') return 'en';
+  }
+  return 'en';
+}
+
+function browserLanguages() {
+  if (typeof navigator === 'undefined') return [];
+  return navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+}
+
+let current = (() => {
+  const saved = load('lang', null);
+  return LANGS[saved] ? saved : detectLanguage(browserLanguages());
+})();
+const listeners = [];
+
+const getLanguage = () => current;
+
+/** The player's choice in Settings: applied at once and remembered as the default. */
+function setLanguage(lang) {
+  if (!LANGS[lang]) return;
+  current = lang;
+  save('lang', lang);
+  applyToDocument();
+  for (const fn of listeners) fn(lang);
+}
+
+function onLanguageChange(fn) { listeners.push(fn); }
+
+/** Text for `key` in the current language, with {placeholders} filled in from `vars`. */
+function t(key, vars) {
+  let s = LANGS[current][key];
+  if (s == null) s = en[key];
+  if (s == null) return key;
+  if (Array.isArray(s)) return s;
+  if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? String(vars[k]) : m));
+  return s;
+}
+
+/** A random entry of a list text (the results jokes). */
+function pick(key) {
+  const list = t(key);
+  return Array.isArray(list) && list.length ? list[(Math.random() * list.length) | 0] : '';
+}
+
+/**
+ * Fills the static page: elements with data-i18n (text), data-i18n-html (markup from
+ * our own files) and data-i18n-aria (aria-label).
+ */
+function applyToDocument(root = typeof document !== 'undefined' ? document : null) {
+  if (!root) return;
+  if (root.documentElement) root.documentElement.lang = current;
+  for (const el of root.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+  for (const el of root.querySelectorAll('[data-i18n-html]')) el.innerHTML = t(el.dataset.i18nHtml);
+  for (const el of root.querySelectorAll('[data-i18n-aria]')) el.setAttribute('aria-label', t(el.dataset.i18nAria));
+}
+
+return { LANGS, LANG_ORDER, detectLanguage, getLanguage, setLanguage, onLanguageChange, t, pick, applyToDocument };
 })();
 // ---- js/render/renderer.js
-__m[10] = (() => {
+__m[15] = (() => {
 // Canvas renderer. Draws the whole game into a low-resolution buffer at the
 // pixel-art grid size, then blits it to the screen with an integer scale and
 // no smoothing — so every art pixel is a crisp square on every device.
@@ -2173,6 +3149,7 @@ const { createPose, poseFor, drawKakapo } = __m[8];
 const { drawText } = __m[9];
 const { sharkAt, spoutAt, eelAt } = __m[2];
 const { sinkDepth } = __m[6];
+const { t: tr } = __m[14];
 const SH = { mode: 'hidden', x: 0, y: 0, dir: 1, u: 0 };
 const SP = { mode: 'off', x: 0, top: 0, k: 0 };
 const EL = { mode: 'hidden', x: 0, headY: 0, u: 0 };
@@ -2499,7 +3476,7 @@ class Renderer {
     const W = this.W, H = this.H;
     if (hud.showScore) {
       drawText(ctx, String(sim.score), W / 2, this.yOff + 6, { scale: 2, color: '#ffffff', outline: '#16363a', shadow: '#16363a', align: 'center' });
-      drawText(ctx, `${sim.metres}M`, 6, this.yOff + 8, { color: '#e4f2a0', outline: '#16363a' });
+      drawText(ctx, tr('hud.metres', { n: sim.metres }), 6, this.yOff + 8, { color: '#e4f2a0', outline: '#16363a' });
       // Hearts
       const b = sim.bird;
       for (let i = 0; i < this.cfg.lives.max; i++) {
@@ -2512,7 +3489,7 @@ class Renderer {
         if (i === b.lives - 1 && b.lives === 1 && ((t * 3) | 0) % 2) dy = -1; // last heart throbs
         ctx.drawImage(img, 5 + i * 15, this.yOff + 17 + dy * 2, 14, 12);
       }
-      if (hud.best > 0) drawText(ctx, `BEST ${hud.best}`, W - 6, this.yOff + 8, { color: '#ffd84a', outline: '#16363a', align: 'right' });
+      if (hud.best > 0) drawText(ctx, tr('hud.best', { n: hud.best }), W - 6, this.yOff + 8, { color: '#ffd84a', outline: '#16363a', align: 'right' });
     }
     fx.drawBanner(ctx, W, this.yOff + 70);
 
@@ -2563,7 +3540,7 @@ class Renderer {
     }
     // speaking but not high enough: tell them
     if (hud.tooLow && ((t * 4) | 0) % 2 === 0) {
-      drawText(ctx, 'HIGHER!', mx + 2, base - maxH - 10, { color: '#ffd84a', outline: '#16363a' });
+      drawText(ctx, tr('hud.higher'), mx + 2, base - maxH - 10, { color: '#ffd84a', outline: '#16363a' });
       const ax = mx + 33, ay = base - maxH - 11;   // up arrow
       rect(ctx, ax - 1, ay - 1, 5, 8, '#16363a');
       rect(ctx, ax + 1, ay, 1, 1, '#ffd84a');
@@ -2571,7 +3548,7 @@ class Renderer {
       rect(ctx, ax + 1, ay + 2, 1, 4, '#ffd84a');
     }
     if (sim.resting && hud.showScore) {
-      drawText(ctx, 'SAFE', mx + n * 4 - 1, base - maxH - 10, { color: '#bdeee6', outline: '#16363a', align: 'right' });
+      drawText(ctx, tr('hud.safe'), mx + n * 4 - 1, base - maxH - 10, { color: '#bdeee6', outline: '#16363a', align: 'right' });
     }
   }
 }
@@ -2579,7 +3556,7 @@ class Renderer {
 return { Renderer };
 })();
 // ---- js/render/effects.js
-__m[11] = (() => {
+__m[16] = (() => {
 // Lightweight visual effects: pooled particles, score popups, screen shake, banners.
 // Everything is preallocated — nothing is created inside the game loop.
 const { drawText } = __m[9];
@@ -2692,7 +3669,7 @@ class Effects {
 return { Effects };
 })();
 // ---- js/biomes/forest.js
-__m[12] = (() => {
+__m[17] = (() => {
 // Biome 1: New Zealand native forest.
 // A biome provides: palette, parallax layers (pre-rendered tiles), platform art,
 // foreground canopy, water, collectible sprite. Future biomes (coast, alpine, fjords)
@@ -3377,11 +4354,11 @@ function createForestBiome(seed = 7) {
 return { PAL, createForestBiome };
 })();
 // ---- js/biomes/index.js
-__m[13] = (() => {
+__m[18] = (() => {
 // Biome registry. The MVP ships only the native forest.
 // Planned (same interface as createForestBiome): 'coast' (beaches, pōhutukawa cliffs),
 // 'alpine' (snowy peaks, lakes), 'fjords' (sheer walls, waterfalls, mist).
-const { createForestBiome } = __m[12];
+const { createForestBiome } = __m[17];
 const factories = {
   forest: createForestBiome,
 };
@@ -3393,7 +4370,7 @@ function createBiome(id = 'forest', seed = 7) {
 return { createBiome };
 })();
 // ---- js/audio/audioContext.js
-__m[14] = (() => {
+__m[19] = (() => {
 // One shared AudioContext for microphone analysis and sound effects.
 // Must be created/resumed from a user gesture (iOS Safari, Chrome autoplay policy).
 // iOS can also leave it 'interrupted' (calls, Siri, switching to AirPods, turning the
@@ -3426,7 +4403,7 @@ async function resumeAudio() {
 return { audioSupported, getAudioContext, resumeAudio };
 })();
 // ---- js/input/micMath.js
-__m[15] = (() => {
+__m[20] = (() => {
 // Pure microphone math — no browser APIs, unit-testable in Node.
 const { clamp } = __m[1];
 const MIN_DB = -100;
@@ -3587,37 +4564,13 @@ function computePitchCalibration(cal, normalHz, highHz, cfg) {
 
 return { rms, rmsToDb, dbToLevel, smoothLevel, percentile, computeCalibration, defaultCalibration, createPitchWork, detectPitch, semitones, pitchToLevel, computePitchCalibration };
 })();
-// ---- js/core/storage.js
-__m[16] = (() => {
-// Local storage for non-sensitive data only (best score, preferences).
-// Every access is guarded: private mode or blocked storage must never break the game.
-const PREFIX = 'kakapo.';
-
-function load(key, fallback) {
-  try {
-    const raw = localStorage.getItem(PREFIX + key);
-    return raw == null ? fallback : JSON.parse(raw);
-  } catch {
-    return fallback;
-  }
-}
-
-function save(key, value) {
-  try {
-    localStorage.setItem(PREFIX + key, JSON.stringify(value));
-  } catch {
-    /* storage unavailable — ignore */
-  }
-}
-
-return { load, save };
-})();
 // ---- js/input/mic.js
-__m[17] = (() => {
+__m[21] = (() => {
 // Microphone input: permission, analysis graph, calibration and smoothed level.
-const { getAudioContext, resumeAudio } = __m[14];
-const { rms, rmsToDb, dbToLevel, smoothLevel, computeCalibration, defaultCalibration, createPitchWork, detectPitch, pitchToLevel, computePitchCalibration } = __m[15];
-const { load, save } = __m[16];
+const { getAudioContext, resumeAudio } = __m[19];
+const { rms, rmsToDb, dbToLevel, smoothLevel, computeCalibration, defaultCalibration, createPitchWork, detectPitch, pitchToLevel, computePitchCalibration } = __m[20];
+const { load, save } = __m[10];
+const { t: tr } = __m[14];
 class Mic {
   constructor(config) {
     this.cfg = config.mic;
@@ -3644,12 +4597,13 @@ class Mic {
     // Remembered calibration lets a returning player skip straight to play
     // (older, volume-only calibrations are ignored in pitch mode).
     const stored = load('calibration', null);
-    const usable = stored && (!this.pitchMode || stored.version === 2);
+    // (a calibration saved by the short-lived fixed-loudness test version is ignored too)
+    const usable = stored && !stored.fixed && (!this.pitchMode || stored.version === 2);
     this.cal = usable ? stored : defaultCalibration(this.cfg);
     this.calibrated = !!usable;
     this._onEnded = () => {
       this.status = 'lost';
-      this.error = 'The microphone stopped (another app may have taken it).';
+      this.error = tr('mic.errStopped');
       this.level = 0;
       if (this.onStatus) this.onStatus(this.status);
     };
@@ -3702,13 +4656,13 @@ class Mic {
     this.error = '';
     if (typeof window !== 'undefined' && window.isSecureContext === false) {
       this.status = 'insecure';
-      this.error = 'Microphone needs a secure page (https:// or localhost).';
+      this.error = tr('mic.errInsecure');
       return this.status;
     }
     const md = typeof navigator !== 'undefined' ? navigator.mediaDevices : null;
     if (!md || !md.getUserMedia || !getAudioContext()) {
       this.status = 'unavailable';
-      this.error = 'This browser does not support microphone input.';
+      this.error = tr('mic.errUnsupported');
       return this.status;
     }
     this.status = 'requesting';
@@ -3720,13 +4674,13 @@ class Mic {
       const name = e && e.name;
       if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
         this.status = 'denied';
-        this.error = 'Microphone permission was denied. You can allow it in the browser’s site settings.';
+        this.error = tr('mic.errDenied');
       } else if (name === 'NotFoundError' || name === 'OverconstrainedError' || name === 'DevicesNotFoundError') {
         this.status = 'unavailable';
-        this.error = 'No microphone was found on this device.';
+        this.error = tr('mic.errNotFound');
       } else {
         this.status = 'error';
-        this.error = `The microphone could not start (${name || 'unknown error'}).`;
+        this.error = tr('mic.errStart', { name: name || tr('common.unknownError') });
       }
       return this.status;
     }
@@ -3759,7 +4713,7 @@ class Mic {
     } catch (e) {
       this.stop();
       this.status = 'error';
-      this.error = 'Audio processing could not start on this browser.';
+      this.error = tr('mic.errAudio');
     }
     return this.status;
   }
@@ -3850,7 +4804,7 @@ class Mic {
 return { Mic };
 })();
 // ---- js/input/touch.js
-__m[18] = (() => {
+__m[22] = (() => {
 // Fallback control when there is no microphone: press & hold anywhere on the game.
 // The level jumps to a soft value on press and rises while held, so the analog
 // feel (soft vs loud) can still be tested. Space / ArrowUp work on desktop.
@@ -3913,12 +4867,12 @@ class TouchControl {
 return { TouchControl };
 })();
 // ---- js/audio/sfx.js
-__m[19] = (() => {
+__m[23] = (() => {
 // Tiny synthesized sound effects (no audio files).
 // They are short, quiet and mostly high-pitched so they don't excite the voice
 // controller; `blockedUntil` also tells the game to ignore takeoff while they play.
-const { getAudioContext } = __m[14];
-const { load, save } = __m[16];
+const { getAudioContext } = __m[19];
+const { load, save } = __m[10];
 class Sfx {
   constructor(config) {
     this.cfg = config.sfx;
@@ -4010,10 +4964,11 @@ class Sfx {
 return { Sfx };
 })();
 // ---- js/ui/ui.js
-__m[20] = (() => {
+__m[24] = (() => {
 // DOM menus and overlays. Holds no game logic: it shows screens and forwards
 // button presses to the handlers main.js provides.
 const { drawText } = __m[9];
+const { t: tr, pick, getLanguage } = __m[14];
 const $ = (id) => document.getElementById(id);
 
 const SCREENS = ['menu', 'permission', 'calib', 'micError', 'pause', 'results', 'settings'];
@@ -4021,56 +4976,7 @@ const SCREENS = ['menu', 'permission', 'calib', 'micError', 'pause', 'results', 
 const MUTE_ON_SVG = '<svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="1" y="3" width="2" height="2"/><rect x="3" y="2" width="1" height="4"/><rect x="4" y="1" width="1" height="6"/><rect x="6" y="2" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="7" y="3" width="1" height="2"/></svg>';
 const MUTE_OFF_SVG = '<svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="1" y="3" width="2" height="2"/><rect x="3" y="2" width="1" height="4"/><rect x="4" y="1" width="1" height="6"/><rect x="5" y="2" width="1" height="1"/><rect x="7" y="2" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="5" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/></svg>';
 
-const QUIPS = {
-  water: [
-    'He’s fine. Just a little damp.',
-    'Splash! The river says hi.',
-    'Short flight. Long bath.',
-    'Kakapo are flightless. You nearly proved otherwise.',
-  ],
-  ceiling: [
-    'Three bonks on the canopy. The canopy won.',
-    'Aim for the islands, not the treetops.',
-    'Big voice, tiny wings, sore head.',
-  ],
-  underside: [
-    'Islands are for landing on. From above.',
-    'He tried to go through. Islands disagree.',
-  ],
-  shark: [
-    'Sharks love a snack that announces itself.',
-    'The fin was the warning. The chomp was the punchline.',
-  ],
-  wave: [
-    'Surf’s up. Kakapo’s down.',
-    'Wait for the river to calm down next time.',
-  ],
-  spout: [
-    'Whoosh! He’s gone to see the clouds. Briefly.',
-    'Waterspouts come and go. Wait for the “go”.',
-  ],
-  eel: [
-    'The eel was hungrier than he was.',
-    'Bubbles in the river? Wait for the snap.',
-  ],
-  falcon: [
-    'Kārearea: 1. Kākāpō: 0.',
-    'Real kākāpō freeze when a falcon hunts. Try resting next time.',
-  ],
-  fire: [
-    'Lightly toasted kakapo.',
-    'Burning islands are for flying over, not landing on.',
-  ],
-  fall: [
-    'Gravity: 1. Kakapo: 0.',
-    'Next time, brake with a little “mmm” before landing.',
-    'He’ll walk it off. Eventually.',
-  ],
-};
-const TITLES = {
-  water: 'SPLASH!', ceiling: 'BONK!', underside: 'OUCH!', fall: 'SPLAT!',
-  shark: 'CHOMP!', wave: 'WIPEOUT!', spout: 'WHOOSH!', fire: 'TOASTED!', eel: 'SNAP!', falcon: 'SNATCHED!',
-};
+const DEATHS = ['water', 'ceiling', 'underside', 'shark', 'wave', 'spout', 'eel', 'falcon', 'fire', 'fall'];
 
 class UI {
   constructor(handlers) {
@@ -4102,6 +5008,9 @@ class UI {
     bind('btnSetVibrate', () => this.h.toggleVibrate());
     bind('btnSetSound', () => this.h.toggleMute());
     bind('btnSetBack', () => this.h.toMenu());
+    for (const b of document.querySelectorAll('.lang-btn')) {
+      b.addEventListener('click', (e) => { e.preventDefault(); this.h.setLanguage(b.dataset.lang); });
+    }
     bind('btnShare', () => this.h.shareVideo());
     bind('btnSave', () => this.h.saveVideo());
     this._drawTitle();
@@ -4130,58 +5039,64 @@ class UI {
     for (const id of ['btnMuteHud']) {
       const b = $(id);
       b.innerHTML = m ? MUTE_OFF_SVG : MUTE_ON_SVG;
-      b.setAttribute('aria-label', m ? 'Unmute sound effects' : 'Mute sound effects');
+      b.setAttribute('aria-label', tr(m ? 'hud.unmuteAria' : 'hud.muteAria'));
       b.setAttribute('aria-pressed', String(m));
     }
   }
 
   setMicStatus(mode, mic) {
     const chip = $('micChip');
-    let text = 'Mic: not enabled yet';
+    let key = 'micChip.notYet';
     let cls = '';
-    if (mode === 'touch' && !mic.on) { text = 'Touch mode'; }
-    if (mic.status === 'requesting') text = 'Mic: waiting for permission…';
-    else if (mic.on) { text = 'Mic: on'; cls = 'ok'; }
-    else if (mic.status === 'denied') { text = 'Mic: blocked'; cls = 'bad'; }
-    else if (mic.status === 'unavailable' || mic.status === 'insecure' || mic.status === 'error') { text = 'Mic: unavailable'; cls = 'bad'; }
-    else if (mic.status === 'lost') { text = 'Mic: disconnected'; cls = 'bad'; }
-    chip.textContent = text;
+    if (mode === 'touch' && !mic.on) { key = 'micChip.touch'; }
+    if (mic.status === 'requesting') key = 'micChip.requesting';
+    else if (mic.on) { key = 'micChip.on'; cls = 'ok'; }
+    else if (mic.status === 'denied') { key = 'micChip.blocked'; cls = 'bad'; }
+    else if (mic.status === 'unavailable' || mic.status === 'insecure' || mic.status === 'error') { key = 'micChip.unavailable'; cls = 'bad'; }
+    else if (mic.status === 'lost') { key = 'micChip.lost'; cls = 'bad'; }
+    chip.textContent = tr(key);
     chip.className = 'chip ' + cls;
-    $('btnPlay').textContent = 'Play';
+    $('btnPlay').textContent = tr('menu.play');
   }
 
   /** Settings screen state. */
   setSettings(cam, recorder, muted, mic, micNote, haptics) {
     if (mic) {
-      const label = mic.on ? (mic.deviceLabel || 'default') : 'not on yet';
-      $('btnSetMic').textContent = `Microphone: ${label.length > 26 ? label.slice(0, 25) + '…' : label}`;
+      const label = mic.on ? (mic.deviceLabel || tr('settings.micDefault')) : tr('settings.micNotOn');
+      $('btnSetMic').textContent = tr('settings.mic', { label: label.length > 26 ? label.slice(0, 25) + '…' : label });
       $('btnSetMic').disabled = !mic.on;
-      $('micNote').textContent = micNote || (mic.on ? 'Tap to switch (e.g. AirPods ↔ phone mic).' : 'Start a game to choose a microphone.');
+      $('micNote').textContent = micNote || tr(mic.on ? 'settings.micNoteOn' : 'settings.micNoteOff');
     }
     const camOn = cam.wanted;
     const cb = $('btnSetCamera');
-    cb.textContent = `Camera background: ${camOn ? 'ON' : 'OFF'}`;
+    const onOff = (v) => tr(v ? 'settings.on' : 'settings.off');
+    cb.textContent = tr('settings.camera', { state: onOff(camOn) });
     cb.setAttribute('aria-pressed', String(camOn));
     const note = {
-      requesting: 'Waiting for camera permission…',
-      denied: 'The camera is blocked for this site. Allow it in the browser settings.',
-      unavailable: 'No camera found on this device.',
-      insecure: 'The camera needs https (or localhost).',
+      requesting: tr('cam.requesting'),
+      denied: tr('cam.denied'),
+      unavailable: tr('cam.unavailable'),
+      insecure: tr('cam.insecure'),
       error: cam.error,
     }[cam.status];
-    $('camNote').textContent = note || (camOn ? 'Your face is the sky. Only shown on this screen.' : 'The normal sky is shown instead.');
+    $('camNote').textContent = note || tr(camOn ? 'cam.noteOn' : 'cam.noteOff');
     const rb = $('btnSetRecord');
-    rb.textContent = recorder.supported ? `Save a video of each run: ${recorder.enabled ? 'ON' : 'OFF'}` : 'Video: not supported in this browser';
+    rb.textContent = recorder.supported ? tr('settings.record', { state: onOff(recorder.enabled) }) : tr('settings.recordUnsupported');
     rb.disabled = !recorder.supported;
     rb.setAttribute('aria-pressed', String(recorder.supported && recorder.enabled));
     const sb = $('btnSetSound');
-    sb.textContent = `Sound effects: ${muted ? 'OFF' : 'ON'}`;
+    sb.textContent = tr('settings.sound', { state: onOff(!muted) });
     sb.setAttribute('aria-pressed', String(!muted));
     const vb = $('btnSetVibrate');
     vb.classList.toggle('hidden', !(haptics && haptics.supported)); // iPhone Safari can't vibrate
     if (haptics) {
-      vb.textContent = `Vibration: ${haptics.enabled ? 'ON' : 'OFF'}`;
+      vb.textContent = tr('settings.vibrate', { state: onOff(haptics.enabled) });
       vb.setAttribute('aria-pressed', String(haptics.enabled));
+    }
+    for (const b of document.querySelectorAll('.lang-btn')) {
+      const on = b.dataset.lang === getLanguage();
+      b.classList.toggle('selected', on);
+      b.setAttribute('aria-pressed', String(on));
     }
   }
 
@@ -4196,30 +5111,32 @@ class UI {
     if (state === 'ready') {
       if (v.src !== url) { v.src = url; v.play().catch(() => {}); }
       v.classList.remove('hidden');
-      note.textContent = canShare ? 'Your run — share the embarrassment!' : 'Your run — save it and share it anywhere.';
+      note.textContent = tr(canShare ? 'res.videoShare' : 'res.videoSave');
     } else {
       v.removeAttribute('src');
       v.load();
       v.classList.add('hidden');
-      note.textContent = state === 'reaction' ? `● REC — still recording your reaction… ${secondsLeft}`
-        : state === 'preparing' ? 'Preparing your video…' : state === 'failed' ? 'The video could not be saved this time.' : '';
+      note.textContent = state === 'reaction' ? tr('res.recording', { n: secondsLeft })
+        : state === 'preparing' ? tr('res.preparing') : state === 'failed' ? tr('res.failed') : '';
       note.classList.toggle('rec', state === 'reaction');
     }
   }
 
+  videoNote(text) {
+    $('resVideoNote').textContent = text;
+  }
+
   setBest(best) {
-    $('menuBest').textContent = best > 0 ? `Best: ${best}` : '';
+    $('menuBest').textContent = best > 0 ? tr('menu.best', { n: best }) : '';
   }
 
   showMicError(mic) {
-    $('micErrorText').textContent = mic.error || 'The microphone is not available.';
-    let help = 'You can still play with touch: press and hold to fly, release to fall.';
+    $('micErrorText').textContent = mic.error || tr('micErr.default');
+    let help = tr('micErr.helpTouch');
     if (mic.status === 'denied') {
-      help = window.top !== window.self
-        ? 'This page is embedded and the microphone is blocked here. To play with your voice, open KAKAPO on its own https site. ' + help
-        : 'To use your voice, allow the microphone for this site in your browser settings, then tap “Try again”. ' + help;
+      help = tr(window.top !== window.self ? 'micErr.helpEmbedded' : 'micErr.helpDenied') + ' ' + help;
     }
-    if (mic.status === 'insecure') help = 'Open the game over https:// (or localhost). ' + help;
+    if (mic.status === 'insecure') help = tr('micErr.helpInsecure') + ' ' + help;
     $('micErrorHelp').textContent = help;
     $('btnRetryMic').classList.toggle('hidden', mic.status === 'unavailable' || mic.status === 'insecure');
     this.show('micError');
@@ -4276,7 +5193,7 @@ class UI {
   }
 
   resultTitle(cause) {
-    return TITLES[cause] || TITLES.water;
+    return tr('title.' + (DEATHS.includes(cause) ? cause : 'water'));
   }
 
   showResults(r) {
@@ -4286,12 +5203,9 @@ class UI {
     $('resBerries').textContent = r.berries;
     $('resBest').textContent = r.best;
     $('resNewBest').classList.toggle('hidden', !r.newBest);
-    const cause = QUIPS[r.cause] ? r.cause : 'water';
-    const quips = QUIPS[cause];
-    $('resTitle').textContent = r.newBest ? 'NEW RECORD!' : TITLES[cause];
-    $('resQuip').textContent = r.metres < 15 && cause === 'water'
-      ? 'Tip: keep making noise to fly, go quiet to land.'
-      : quips[(Math.random() * quips.length) | 0];
+    const cause = DEATHS.includes(r.cause) ? r.cause : 'water';
+    $('resTitle').textContent = r.newBest ? tr('title.newRecord') : tr('title.' + cause);
+    $('resQuip').textContent = r.metres < 15 && cause === 'water' ? tr('res.tipFirst') : pick('quips.' + cause);
     this.show('results');
   }
 }
@@ -4299,7 +5213,7 @@ class UI {
 return { UI };
 })();
 // ---- js/capture/capture.js
-__m[21] = (() => {
+__m[25] = (() => {
 // FUTURE FEATURE — face camera + gameplay recording. Not active in the MVP.
 //
 // This module only reports what the current browser could support. There is no
@@ -4336,12 +5250,13 @@ function captureSupport() {
 return { frameHooks, captureSupport };
 })();
 // ---- js/capture/camera.js
-__m[22] = (() => {
+__m[26] = (() => {
 // Front camera as the game's sky: the player becomes the backdrop.
 // The video is drawn at the game's low pixel-art resolution (so it pixelates naturally),
 // mirrored like a selfie, and posterized to a few colour levels so it sits with the art.
 // Nothing is recorded or sent anywhere: frames go from the camera straight to the canvas.
-const { load, save } = __m[16];
+const { load, save } = __m[10];
+const { t: tr } = __m[14];
 class Camera {
   constructor(config) {
     this.cfg = config.camera;
@@ -4355,7 +5270,7 @@ class Camera {
     this._lut = new Uint8ClampedArray(256);
     this._lutLevels = 0;
     this.onStatus = null;
-    this._onEnded = () => { this.stop(); this.status = 'error'; this.error = 'The camera stopped.'; this.onStatus && this.onStatus(); };
+    this._onEnded = () => { this.stop(); this.status = 'error'; this.error = tr('cam.errStopped'); this.onStatus && this.onStatus(); };
   }
 
   get on() { return this.status === 'on' && this.video && this.video.readyState >= 2; }
@@ -4365,13 +5280,13 @@ class Camera {
     if (this.status === 'on') return this.status;
     if (typeof window !== 'undefined' && window.isSecureContext === false) {
       this.status = 'insecure';
-      this.error = 'The camera needs a secure page (https:// or localhost).';
+      this.error = tr('cam.errInsecure');
       return this.status;
     }
     const md = typeof navigator !== 'undefined' ? navigator.mediaDevices : null;
     if (!md || !md.getUserMedia) {
       this.status = 'unavailable';
-      this.error = 'This browser cannot use the camera.';
+      this.error = tr('cam.errUnsupported');
       return this.status;
     }
     this.status = 'requesting';
@@ -4385,8 +5300,8 @@ class Camera {
       const name = e && e.name;
       this.status = name === 'NotAllowedError' || name === 'SecurityError' ? 'denied'
         : name === 'NotFoundError' || name === 'OverconstrainedError' ? 'unavailable' : 'error';
-      this.error = this.status === 'denied' ? 'Camera permission was denied.'
-        : this.status === 'unavailable' ? 'No camera was found.' : `The camera could not start (${name || 'unknown error'}).`;
+      this.error = this.status === 'denied' ? tr('cam.errDenied')
+        : this.status === 'unavailable' ? tr('cam.errNotFound') : tr('cam.errStart', { name: name || tr('common.unknownError') });
       return this.status;
     }
     const v = document.createElement('video');
@@ -4528,11 +5443,12 @@ class Camera {
 return { Camera };
 })();
 // ---- js/capture/endcard.js
-__m[23] = (() => {
+__m[27] = (() => {
 // The end card burnt into the run video: title, score, distance and record, so whoever
 // receives the clip on WhatsApp knows how it went. Drawn only on the recording canvas
 // (the player sees the normal results screen).
 const { drawText, textWidth } = __m[9];
+const { t: tr } = __m[14];
 const INK = '#0d2326';
 const PANEL = '#16363a';
 const LIME = '#c6f06a';
@@ -4570,11 +5486,12 @@ function drawEndCard(ctx, w, h, card, alpha) {
   const inner = pw - 6 * u;
   const title = String(card.title || 'KAKAPO').toUpperCase();
   const score = String(card.score | 0);
-  const stats = `${card.metres | 0} M  -  BEST ${card.best | 0}`;
+  const stats = tr('end.stats', { m: card.metres | 0, best: card.best | 0 });
   const sT = fit(title, inner, 3 * u);
   const sS = fit(score, inner, 5 * u);
   const sM = fit(stats, inner, u + Math.floor(u / 2));
-  const sF = fit('SHOUT TO FLY', inner, u);
+  const tagline = tr('end.tagline');
+  const sF = fit(tagline, inner, u);
   const gap = 3 * u;
   const ph = 4 * u + 5 * sT + gap + 5 * sS + u * 2 + 5 * u + gap + 5 * sM + gap * 2 + 5 * 2 * u + u * 2 + 5 * sF + 4 * u;
   const px = Math.round((w - pw) / 2);
@@ -4593,22 +5510,22 @@ function drawEndCard(ctx, w, h, card, alpha) {
   let y = py + 4 * u;
   y += centered(ctx, title, cx, y, sT, card.newBest ? GOLD : LIME) + gap;
   y += centered(ctx, score, cx, y, sS, '#ffffff') + u * 2;
-  y += centered(ctx, 'POINTS', cx, y, u, PALE) + gap;
+  y += centered(ctx, tr('end.points'), cx, y, u, PALE) + gap;
   y += centered(ctx, stats, cx, y, sM, card.newBest ? GOLD : PALE) + gap * 2;
   y += centered(ctx, 'KAKAPO', cx, y, 2 * u, LIME) + u * 2;
-  centered(ctx, 'SHOUT TO FLY', cx, y, sF, PALE);
+  centered(ctx, tagline, cx, y, sF, PALE);
   ctx.restore();
 }
 
 return { drawEndCard };
 })();
 // ---- js/capture/recorder.js
-__m[24] = (() => {
+__m[28] = (() => {
 // Records each run: the finished screen (camera + game) and the sound (your squeaks + the
 // game's effects) into a vertical video, ready to share when the run ends.
 // The video stays in memory on this device; it is only shared if the player taps Share.
-const { load, save } = __m[16];
-const { drawEndCard } = __m[23];
+const { load, save } = __m[10];
+const { drawEndCard } = __m[27];
 // MP4 with AAC sound first: it plays with sound everywhere (Windows player, WhatsApp, iPhone).
 // A plain 'video/mp4' in Chrome means Opus sound inside MP4, which many players open
 // SILENT, so Chrome without AAC gets WebM (Opus in WebM is understood); Safari's plain
@@ -4773,11 +5690,11 @@ class Recorder {
 return { Recorder };
 })();
 // ---- js/core/haptics.js
-__m[25] = (() => {
+__m[29] = (() => {
 // Phone vibration on the big moments (landing, losing a heart, dying).
 // Uses navigator.vibrate: Android browsers support it; iPhone Safari does not (it's
 // simply skipped there). Can be turned off in Settings.
-const { load, save } = __m[16];
+const { load, save } = __m[10];
 const PATTERNS = {
   land: 12,
   bonk: 25,
@@ -4807,28 +5724,73 @@ class Haptics {
 
 return { Haptics };
 })();
+// ---- js/platform/native.js
+__m[30] = (() => {
+// Running inside the Android app (Capacitor)? Then the browser's Web Share API and
+// downloads don't exist, so the run video is shared and saved with native plugins.
+// In a normal browser none of this is used.
+const { t: tr } = __m[14];
+function cap() {
+  const C = typeof window !== 'undefined' ? window.Capacitor : null;
+  return C && typeof C.isNativePlatform === 'function' && C.isNativePlatform() ? C : null;
+}
+
+const isNativeApp = () => !!cap();
+
+function plugin(name) {
+  const C = cap();
+  return (C.Plugins && C.Plugins[name]) || C.registerPlugin(name);
+}
+
+function toBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
+/** Opens Android's share sheet (WhatsApp, Instagram, TikTok…) with the video. */
+async function nativeShareFile(file, text) {
+  const data = await toBase64(file);
+  const { uri } = await plugin('Filesystem').writeFile({ path: file.name, data, directory: 'CACHE' });
+  await plugin('Share').share({ title: 'KAKAPO', text, files: [uri], dialogTitle: tr('res.shareDialog') });
+}
+
+/** Saves the video in the phone's Documents/KAKAPO folder. Resolves to a short place name. */
+async function nativeSaveFile(file) {
+  const data = await toBase64(file);
+  await plugin('Filesystem').writeFile({ path: `KAKAPO/${file.name}`, data, directory: 'DOCUMENTS', recursive: true });
+  return `Documents/KAKAPO/${file.name}`;
+}
+
+return { isNativeApp, nativeShareFile, nativeSaveFile };
+})();
 // ---- js/main.js
-__m[26] = (() => {
+__m[31] = (() => {
 // KAKAPO — game loop and state management.
 // Owns the single requestAnimationFrame loop and wires simulation, input,
 // rendering, effects, sound and UI together.
 const { CONFIG } = __m[0];
 const { Sim } = __m[6];
-const { Renderer } = __m[10];
-const { Effects } = __m[11];
+const { Renderer } = __m[15];
+const { Effects } = __m[16];
 const { createPose, poseFor, drawKakapo } = __m[8];
-const { createBiome } = __m[13];
-const { Mic } = __m[17];
-const { TouchControl } = __m[18];
-const { Sfx } = __m[19];
-const { resumeAudio } = __m[14];
-const { UI } = __m[20];
-const { load, save } = __m[16];
-const { frameHooks } = __m[21];
-const { Camera } = __m[22];
-const { Recorder } = __m[24];
-const { Haptics } = __m[25];
-const { getAudioContext } = __m[14];
+const { createBiome } = __m[18];
+const { Mic } = __m[21];
+const { TouchControl } = __m[22];
+const { Sfx } = __m[23];
+const { resumeAudio } = __m[19];
+const { UI } = __m[24];
+const { load, save } = __m[10];
+const { frameHooks } = __m[25];
+const { Camera } = __m[26];
+const { Recorder } = __m[28];
+const { Haptics } = __m[29];
+const { isNativeApp, nativeShareFile, nativeSaveFile } = __m[30];
+const { t: tr, setLanguage, onLanguageChange, applyToDocument } = __m[14];
+const { getAudioContext } = __m[19];
 const TEST = new URLSearchParams(location.search).has('test');
 
 // ---------------------------------------------------------------------------
@@ -4893,12 +5855,20 @@ const ui = new UI({
   again: newRun,
   toggleMute: () => { sfx.setMuted(!sfx.muted); ui.setMuted(sfx.muted); refreshSettings(); },
   toggleCamera,
+  setLanguage,
 });
+applyToDocument(); // the page's fixed texts, in the player's language
 ui.setMuted(sfx.muted);
 ui.setBest(game.best);
 ui.setMicStatus(game.input, mic);
 const refreshSettings = (micNote) => ui.setSettings(camera, recorder, sfx.muted, mic, micNote, haptics);
 camera.onStatus = refreshSettings;
+onLanguageChange(() => { // Settings → language: redraw every text that is on screen now
+  refreshSettings();
+  ui.setMicStatus(game.input, mic);
+  ui.setBest(game.best);
+  ui.setMuted(sfx.muted);
+});
 mic.onStatus = () => {
   ui.setMicStatus(game.input, mic);
   if (game.mode === 'playing' || game.mode === 'ready' || game.mode === 'calibrating') {
@@ -4918,7 +5888,7 @@ function startCameraIfWanted() {
     camera.start().then((st) => {
       refreshSettings();
       if (st !== 'on' && (game.mode === 'ready' || game.mode === 'playing')) {
-        ui.hint(st === 'denied' ? 'Camera blocked — playing with the normal sky. You can allow it later.' : 'No camera — playing with the normal sky.', 3.5);
+        ui.hint(tr(st === 'denied' ? 'cam.hintBlocked' : 'cam.hintNone'), 3.5);
       }
     });
   }
@@ -4945,13 +5915,13 @@ function openSettings() {
 /** Settings → Microphone: switch to the next audio input (e.g. AirPods ↔ phone mic). */
 async function nextMic() {
   const inputs = await Mic.listInputs();
-  if (inputs.length < 2) { refreshSettings('Only one microphone available.'); return; }
+  if (inputs.length < 2) { refreshSettings(tr('settings.micOnlyOne')); return; }
   const cur = mic.stream && mic.stream.getAudioTracks()[0] && mic.stream.getAudioTracks()[0].getSettings().deviceId;
   const i = Math.max(0, inputs.findIndex((d) => d.deviceId === cur));
   const next = inputs[(i + 1) % inputs.length];
   await mic.useDevice(next.deviceId);
   game.sessionCalibrated = false; // a different mic needs a new calibration
-  refreshSettings('Switched. Recalibrate your voice for this microphone.');
+  refreshSettings(tr('settings.micSwitched'));
 }
 
 function onPlay() {
@@ -5020,14 +5990,14 @@ const STEP_NO = { intro: 0, quiet: 1, normal: 2, loud: 2, high: 3, try: 4, done:
 const pitchMeter = (hz) => (hz > 0 ? Math.max(0, Math.min(1, Math.log2(hz / 80) / Math.log2(1200 / 80))) : null);
 const hearingMeter = () => Math.max(0, Math.min(1, (mic.db - mic.cal.floorDb + 4) / 40));
 const median = (a) => { const v = a.filter((x) => x > 0).sort((x, y) => x - y); return v.length ? v[v.length >> 1] : 0; };
-const NO_HEAR_NOTE = 'Can’t hear you? Check the mic isn’t muted, hold the phone closer, or pick another microphone in Settings (AirPods mics are often weak — try the phone’s own mic).';
+const NO_HEAR_NOTE = () => tr('calib.noHearNote');
 
 function startCalibration() {
   game.input = 'mic';
   game.mode = 'calibrating';
   // Volume mode: just 2 steps that start right away — silence, then a shout.
   // (Pitch mode keeps its longer flow: intro, normal voice, squeak, try it.)
-  document.getElementById('cs2').textContent = mic.pitchMode ? 'Normal' : 'AAAH!';
+  document.getElementById('cs2').textContent = tr(mic.pitchMode ? 'calib.step.normal' : 'calib.step.loud');
   document.getElementById('cs3').classList.toggle('hidden', !mic.pitchMode);
   document.getElementById('cs4').classList.toggle('hidden', !mic.pitchMode);
   game.calib = { phase: mic.pitchMode ? 'intro' : 'quiet', t: 0, quiet: [], normal: [], high: [], loud: [], heard: 0, silent: 0, gotIt: 0, tryT: 0 };
@@ -5053,7 +6023,7 @@ function calibSkip() {
   game.sessionCalibrated = true;
   game.calib = null;
   newRun();
-  ui.hint('Using standard voice settings. You can tune it later in Settings.', 3.5);
+  ui.hint(tr('calib.skipped'), 3.5);
 }
 
 function setPhase(p) {
@@ -5126,74 +6096,71 @@ function renderCalib() {
   const v = { step, showViz: true, showPitch: mic.pitchMode, hearing: hearingMeter(), pitchNow: pitchMeter(mic.pitchHz), skip: true };
   const hz = mic.pitchHz ? `${Math.round(mic.pitchHz)} Hz` : '';
   if (c.gotIt > 0) {
-    Object.assign(v, { title: c.next === 'play' ? '✓ Got it! Let’s fly…' : '✓ Got it!', status: '', progress: 1 });
+    Object.assign(v, { title: tr(c.next === 'play' ? 'calib.gotItPlay' : 'calib.gotIt'), status: '', progress: 1 });
   } else if (ph === 'intro') {
     Object.assign(v, {
-      title: 'Tune the game to your voice',
-      text: mic.pitchMode
-        ? '3 short steps (about 20 seconds): a moment of silence, an “aaah” in your normal voice, and your best high squeak. Then a quick test.'
-        : '2 short steps (about 15 seconds): a moment of silence and a long, loud “AAAH”. Then a quick test.',
-      status: mic.voiced ? 'I can hear you ✓' : 'Say something — the “Hearing” bar should move.',
+      title: tr('calib.introTitle'),
+      text: tr(mic.pitchMode ? 'calib.introTextPitch' : 'calib.introTextVolume'),
+      status: tr(mic.voiced ? 'calib.introHeard' : 'calib.introSaySomething'),
       statusKind: mic.voiced ? 'good' : '',
-      note: 'Hold the phone at chatting distance. With AirPods in, their microphone is used.',
-      go: 'Start', progress: 0,
+      note: tr('calib.introNote'),
+      go: tr('calib.start'), progress: 0,
     });
   } else if (ph === 'quiet') {
     const left = Math.max(1, Math.ceil(CAL.quietSec - c.t));
     Object.assign(v, {
-      title: mic.pitchMode ? 'Step 1 · Shhh…' : '1 of 2 · Shhh…',
-      text: 'Stay quiet for a moment so the game learns your room’s noise.',
-      status: `Listening to the room… ${left}`, progress: c.t / CAL.quietSec, showPitch: false,
-      note: 'Background sounds below this level will never make the kakapo fly.',
+      title: tr(mic.pitchMode ? 'calib.quietTitlePitch' : 'calib.quietTitle'),
+      text: tr('calib.quietText'),
+      status: tr('calib.quietStatus', { n: left }), progress: c.t / CAL.quietSec, showPitch: false,
+      note: tr('calib.quietNote'),
     });
   } else if (ph === 'normal' || ph === 'loud') {
     const loud = ph === 'loud';
     Object.assign(v, {
-      title: loud ? '2 of 2 · Shout “AAAAH!”' : 'Step 2 · Your normal voice',
-      text: loud ? 'A long, loud “AAAAAH!” — like you’re cheering. Keep it going until the bar fills.' : 'Say a long “aaaaah” in your normal speaking voice — like at the doctor’s. Keep it going.',
+      title: tr(loud ? 'calib.loudTitle' : 'calib.normalTitle'),
+      text: tr(loud ? 'calib.loudText' : 'calib.normalText'),
       progress: c.heard / CAL.normalSec,
       showPitch: !loud,
-      note: loud ? 'This shout is the kakapo’s full speed. Softer = slower; talking won’t lift him.' : 'This pitch will NOT make him fly — only higher ones will.',
+      note: tr(loud ? 'calib.loudNote' : 'calib.normalNote'),
     });
-    if (mic.deadInput) Object.assign(v, { status: 'The microphone is giving no sound at all.', statusKind: 'bad', note: NO_HEAR_NOTE, go: 'Retry microphone' });
-    else if (loud && mic.voiced) Object.assign(v, { status: 'I hear you ✓ — keep going…', statusKind: 'good' });
-    else if (mic.voiced && mic.pitchHz) Object.assign(v, { status: `I hear you ✓ ${hz} — keep going…`, statusKind: 'good' });
-    else if (mic.voiced) Object.assign(v, { status: 'I hear something — hold a steady “aaah”.', statusKind: 'warn' });
-    else if (c.silent > CAL.helpAfter) Object.assign(v, { status: 'I can’t hear you…', statusKind: 'bad', note: NO_HEAR_NOTE });
-    else Object.assign(v, { status: 'Waiting for your “aaah”…' });
+    if (mic.deadInput) Object.assign(v, { status: tr('calib.deadInput'), statusKind: 'bad', note: NO_HEAR_NOTE(), go: tr('calib.retryMic') });
+    else if (loud && mic.voiced) Object.assign(v, { status: tr('calib.hearKeep'), statusKind: 'good' });
+    else if (mic.voiced && mic.pitchHz) Object.assign(v, { status: tr('calib.hearKeepHz', { hz }), statusKind: 'good' });
+    else if (mic.voiced) Object.assign(v, { status: tr('calib.hearSomething'), statusKind: 'warn' });
+    else if (c.silent > CAL.helpAfter) Object.assign(v, { status: tr('calib.cantHear'), statusKind: 'bad', note: NO_HEAR_NOTE() });
+    else Object.assign(v, { status: tr('calib.waitAaah') });
   } else if (ph === 'high') {
     const normalHz = median(c.normal);
     const target = normalHz * Math.pow(2, CAL.higherBy / 12);
     Object.assign(v, {
-      title: 'Step 3 · Squeak!',
-      text: 'Now a high squeak — “iiiiii!” — as high as you can WITHOUT straining. Like a tiny bird.',
+      title: tr('calib.highTitle'),
+      text: tr('calib.highText'),
       progress: c.heard / CAL.highSec,
       pitchNormal: pitchMeter(normalHz), zoneFrom: pitchMeter(target), zoneTo: 1,
-      note: `Your normal voice: ${Math.round(normalHz)} Hz. Get into the green zone (above ${Math.round(target)} Hz).`,
+      note: tr('calib.highNote', { normal: Math.round(normalHz), target: Math.round(target) }),
     });
-    if (mic.deadInput) Object.assign(v, { status: 'The microphone is giving no sound at all.', statusKind: 'bad', note: NO_HEAR_NOTE, go: 'Retry microphone' });
-    else if (mic.voiced && mic.pitchHz >= target) Object.assign(v, { status: `Yes! ✓ ${hz} — hold it…`, statusKind: 'good' });
-    else if (mic.voiced && mic.pitchHz) Object.assign(v, { status: `Higher! ↑ (${hz})`, statusKind: 'warn' });
-    else if (c.silent > CAL.helpAfter) Object.assign(v, { status: 'I can’t hear you…', statusKind: 'bad', note: NO_HEAR_NOTE });
-    else Object.assign(v, { status: 'Waiting for your squeak…' });
+    if (mic.deadInput) Object.assign(v, { status: tr('calib.deadInput'), statusKind: 'bad', note: NO_HEAR_NOTE(), go: tr('calib.retryMic') });
+    else if (mic.voiced && mic.pitchHz >= target) Object.assign(v, { status: tr('calib.highYes', { hz }), statusKind: 'good' });
+    else if (mic.voiced && mic.pitchHz) Object.assign(v, { status: tr('calib.highHigher', { hz }), statusKind: 'warn' });
+    else if (c.silent > CAL.helpAfter) Object.assign(v, { status: tr('calib.cantHear'), statusKind: 'bad', note: NO_HEAR_NOTE() });
+    else Object.assign(v, { status: tr('calib.highWait') });
   } else if (ph === 'try') {
     const lv = mic.level;
     const cal = mic.cal;
     Object.assign(v, {
-      title: mic.pitchMode ? 'Step 4 · Try it' : 'Step 3 · Try it',
-      text: c.passed ? '' : (mic.pitchMode ? 'Squeak to fill the bar past the line for a second. Go quiet and it drops.'
-        : 'Say “aaah” to fill the bar for a second. Louder = higher and faster, softer = slower, silence = drop.'),
+      title: tr(mic.pitchMode ? 'calib.tryTitlePitch' : 'calib.tryTitle'),
+      text: c.passed ? '' : tr(mic.pitchMode ? 'calib.tryTextPitch' : 'calib.tryTextVolume'),
       hearing: lv, showPitch: mic.pitchMode,
       pitchNormal: mic.pitchMode ? pitchMeter(cal.speakHz) : null,
       zoneFrom: mic.pitchMode ? pitchMeter(cal.lowHz) : null, zoneTo: mic.pitchMode ? pitchMeter(cal.highHz) : null,
       progress: c.passed ? 1 : c.tryT / CAL.trySec,
-      go: c.passed ? 'Play!' : 'Play', skip: false,
-      note: mic.pitchMode ? `Flying starts at ${Math.round(cal.lowHz)} Hz, full speed at ${Math.round(cal.highHz)} Hz. You can redo this in Settings.` : 'You can redo this in Settings.',
+      go: tr(c.passed ? 'calib.tryPlayReady' : 'calib.tryPlay'), skip: false,
+      note: mic.pitchMode ? tr('calib.tryNotePitch', { low: Math.round(cal.lowHz), high: Math.round(cal.highHz) }) : tr('calib.tryNote'),
     });
-    if (c.passed) Object.assign(v, { status: 'Perfect! The kakapo would be flying. You’re ready.', statusKind: 'good' });
-    else if (mic.tooLow > 0.2) Object.assign(v, { status: 'Higher! ↑ That’s your talking voice.', statusKind: 'warn' });
-    else if (lv >= CONFIG.rest.takeoffLevel) Object.assign(v, { status: 'Flying! ✓ Hold it…', statusKind: 'good' });
-    else Object.assign(v, { status: mic.pitchMode ? 'Squeak!' : 'Aaaah!' });
+    if (c.passed) Object.assign(v, { status: tr('calib.tryPassed'), statusKind: 'good' });
+    else if (mic.tooLow > 0.2) Object.assign(v, { status: tr('calib.tryTooLow'), statusKind: 'warn' });
+    else if (lv >= CONFIG.rest.takeoffLevel) Object.assign(v, { status: tr('calib.tryFlying'), statusKind: 'good' });
+    else Object.assign(v, { status: tr(mic.pitchMode ? 'calib.trySqueak' : 'calib.tryAaah') });
   }
   ui.calibView(v);
 }
@@ -5245,7 +6212,7 @@ async function finishRecording(score) {
   if (game.mode !== 'results') return; // the player already moved on
   if (!blob) { ui.setVideo('failed'); return; }
   const file = recorder.file(score);
-  const canShare = !!(navigator.canShare && file && navigator.canShare({ files: [file] }));
+  const canShare = isNativeApp() || !!(navigator.canShare && file && navigator.canShare({ files: [file] }));
   game.videoFile = file;
   ui.setVideo('ready', recorder.url, canShare);
 }
@@ -5253,8 +6220,15 @@ async function finishRecording(score) {
 async function shareVideo() {
   const file = game.videoFile;
   if (!file) return;
+  const text = tr('res.shareText', { score: sim.score });
+  if (isNativeApp()) {
+    try { await nativeShareFile(file, text); } catch (e) {
+      if (!/cancel/i.test(String(e && (e.message || e)))) ui.videoNote(tr('res.shareFailed'));
+    }
+    return;
+  }
   try {
-    await navigator.share({ files: [file], title: 'KAKAPO', text: `I yelled my way to ${sim.score} points in KAKAPO!` });
+    await navigator.share({ files: [file], title: 'KAKAPO', text });
   } catch (e) {
     if (e && e.name !== 'AbortError') saveVideo();
   }
@@ -5262,6 +6236,16 @@ async function shareVideo() {
 
 async function saveVideo() {
   if (!recorder.url || !game.videoFile) return;
+  if (isNativeApp()) {
+    try {
+      const where = await nativeSaveFile(game.videoFile);
+      ui.videoNote(tr('res.saved', { where }));
+    } catch {
+      ui.videoNote(tr('res.saveFailed'));
+      shareVideo();
+    }
+    return;
+  }
   // Inside a Claude page, files are offered through the viewer's own save dialog.
   if (window.claude && typeof window.claude.use === 'function') {
     try {
@@ -5293,7 +6277,7 @@ function newRun() {
   ui.setVideo('off');
   ui.show('game');
   startRecording();
-  ui.hint(game.input === 'mic' ? TAKEOFF_HINT() : 'Press & hold to fly!');
+  ui.hint(game.input === 'mic' ? TAKEOFF_HINT() : tr('hint.takeoffTouch'));
 }
 
 function toMenu() {
@@ -5321,7 +6305,7 @@ function resumeGame() {
   game.mode = game.pausedFrom || 'playing';
   recorder.resume();
   ui.show('game');
-  if (game.mode === 'ready') ui.hint(game.input === 'mic' ? TAKEOFF_HINT() : 'Press & hold to fly!');
+  if (game.mode === 'ready') ui.hint(game.input === 'mic' ? TAKEOFF_HINT() : tr('hint.takeoffTouch'));
 }
 
 function endRun() {
@@ -5335,7 +6319,7 @@ function endRun() {
   });
   // the end card appears in the video a little after the death, once the reaction has started
   recorder.setEndCard({
-    title: newBest ? 'NEW RECORD!' : ui.resultTitle(sim.bird.deathCause),
+    title: newBest ? tr('title.newRecord') : ui.resultTitle(sim.bird.deathCause),
     score, metres: sim.metres, best: game.best, newBest,
   }, (game.deathAt || performance.now()) + CONFIG.recording.endCardAfterSec * 1000);
   finishRecording(score);
@@ -5350,23 +6334,11 @@ const WATER = ['#ffffff', '#c4faf3', '#46d3d6'];
 const SPARK = ['#ffd84a', '#fff6c2', '#ffffff'];
 const PETALS = ['#e8404a', '#ff7a5c', '#ffd34a'];
 const FIRE = ['#ff8a2a', '#ffd04a', '#e8402a'];
-const HURT_WORDS = { fall: 'SPLAT!', ceiling: 'BONK!', underside: 'OUCH!', fire: 'HOT!', falcon: 'CLAW!' };
-const HAZARD_HINTS = {
-  shark: 'Shark! When you see the fin, wait for the jump.',
-  wave: 'Giant wave! Rest and cross when the river calms.',
-  eel: 'Eel! Bubbles mean it’s about to jump. Wait, then cross.',
-  spout: 'Waterspout! Wait on the island until it fades.',
-  fire: 'Burning island ahead: fly over it, don’t land!',
-  drop: 'Low canopy ahead: fly under it.',
-};
-const TAKEOFF_HINT = () => (mic.pitchMode ? 'Squeak HIGH to take off! “iiiiii!”' : 'Make a sound to take off!');
-const HURT_HINTS = {
-  ceiling: 'Ouch! The canopy costs a heart.',
-  fire: 'Hot! Burning islands aren’t for resting.',
-  falcon: 'The falcon got you! Change height when its ! turns red.',
-  underside: 'Don’t hit islands from below!',
-  fall: 'Too high! Make a little noise to brake before landing.',
-};
+const HURT_KINDS = ['fall', 'ceiling', 'underside', 'fire', 'falcon'];
+const HURT_WORD = (cause) => tr(HURT_KINDS.includes(cause) ? 'fx.hurt.' + cause : 'fx.hurt.default');
+const HAZARD_HINT = (key) => tr('hazard.' + key);
+const TAKEOFF_HINT = () => tr(mic.pitchMode ? 'hint.takeoffPitch' : 'hint.takeoffVoice');
+const HURT_HINT = (cause) => (HURT_KINDS.includes(cause) ? tr('hurt.' + cause) : '');
 
 function handleEvents() {
   for (let i = 0; i < sim.eventCount; i++) {
@@ -5388,16 +6360,16 @@ function handleEvents() {
         if (e.a > 0) fx.popup(e.x, e.y - 26, '+' + e.a, '#e4f2a0');
         sfx.play('land');
         haptics.buzz('land');
-        if (sim.bird.landings === 1 && sim.bird.state === 'rest') ui.hint('Safe! Rest as long as you like.', 2.6);
+        if (sim.bird.landings === 1 && sim.bird.state === 'rest') ui.hint(tr('hint.safe'), 2.6);
         break;
       case 'perfect':
         fx.burst(e.x, e.y - 8, 8, SPARK, 50, 20, 60, 0.6);
-        fx.popup(e.x, e.y - 34, 'PERFECT', '#ffd84a');
+        fx.popup(e.x, e.y - 34, tr('fx.perfect'), '#ffd84a');
         sfx.play('perfect');
         break;
       case 'checkpoint':
         fx.burst(e.x, e.y - 10, 18, PETALS, 60, 40, 50, 1.4, 2);
-        fx.showBanner('POHUTUKAWA!', '#ff7a5c', 1.4);
+        fx.showBanner(tr('fx.checkpoint'), '#ff7a5c', 1.4);
         sfx.play('checkpoint');
         haptics.buzz('checkpoint');
         break;
@@ -5424,14 +6396,14 @@ function handleEvents() {
         const cause = sim.bird.hurtCause;
         fx.addShake(6);
         fx.flash = 1;
-        fx.popup(e.x, e.y - 18, HURT_WORDS[cause] || 'OUCH!', '#ff9aa8');
+        fx.popup(e.x, e.y - 18, HURT_WORD(cause), '#ff9aa8');
         for (let k = 0; k < 6; k++) fx.spawn(e.x, e.y, (Math.random() - 0.5) * 50, -30 - Math.random() * 30, 40, 1.6, LEAVES[k % 3], 2, 1);
         if (cause === 'fall') fx.burst(e.x, e.y, 14, DUST, 60, 10, 160, 0.5);
         sfx.play(e.a > 0 ? 'hurt' : 'ko');
         haptics.buzz('hurt');
         if (e.a > 0 && !game.hintsShown[cause]) {
           game.hintsShown[cause] = true;
-          ui.hint(HURT_HINTS[cause], 3);
+          ui.hint(HURT_HINT(cause), 3);
         }
         break;
       }
@@ -5440,12 +6412,12 @@ function handleEvents() {
         sfx.play('burn');
         break;
       case 'chomp':
-        fx.popup(e.x, e.y - 14, 'CHOMP!', '#ffffff');
+        fx.popup(e.x, e.y - 14, tr('fx.chomp'), '#ffffff');
         fx.addShake(6);
         sfx.play('chomp');
         break;
       case 'snap':
-        fx.popup(e.x, e.y - 10, 'SNAP!', '#ffffff');
+        fx.popup(e.x, e.y - 10, tr('fx.snap'), '#ffffff');
         fx.burst(e.x, e.y, 10, WATER, 60, 40, 200, 0.7);
         fx.addShake(6);
         sfx.play('chomp');
@@ -5455,7 +6427,7 @@ function handleEvents() {
         haptics.buzz('falcon');
         if (!game.hintsShown.falcon) {
           game.hintsShown.falcon = true;
-          ui.hint('Falcon! When the ! turns red, change height. Perched kakapo are invisible to it.', 4);
+          ui.hint(tr('hint.falcon'), 4);
         }
         break;
       case 'falconDive':
@@ -5465,10 +6437,10 @@ function handleEvents() {
         for (let k = 0; k < 8; k++) fx.spawn(e.x, e.y, (Math.random() - 0.5) * 70, -20 - Math.random() * 40, 50, 1.6, LEAVES[k % 3], 2, 1);
         break;
       case 'falconGone':
-        fx.popup(e.x, e.y - 22, 'FROZEN!', '#bdeee6');
+        fx.popup(e.x, e.y - 22, tr('fx.frozen'), '#bdeee6');
         break;
       case 'sucked':
-        fx.popup(e.x, e.y - 14, 'WHOOSH!', '#e9fbfd');
+        fx.popup(e.x, e.y - 14, tr('fx.whoosh'), '#e9fbfd');
         fx.burst(e.x, e.y, 14, WATER, 70, 30, 40, 0.8);
         sfx.play('whoosh');
         break;
@@ -5487,7 +6459,7 @@ function handleEvents() {
         }
         break;
       case 'milestone':
-        fx.showBanner(`${e.a} M!`, '#ffd84a', 1.4);
+        fx.showBanner(tr('fx.metres', { n: e.a }), '#ffd84a', 1.4);
         fx.burst(e.x, e.y, 10, SPARK, 50, 10, 30, 0.8);
         sfx.play('milestone');
         break;
@@ -5505,7 +6477,7 @@ function checkHazardHints() {
   const show = (key) => {
     if (game.hintsShown[key]) return false;
     game.hintsShown[key] = true;
-    ui.hint(HAZARD_HINTS[key], 3.2);
+    ui.hint(HAZARD_HINT(key), 3.2);
     return true;
   };
   for (const hz of w.hazards) if (hz.x0 < right && hz.x1 > camX && show(hz.type)) return;
@@ -5572,7 +6544,7 @@ function frame(now) {
       if (game.firstFlightT >= 0) {
         game.firstFlightT += dt;
         if (game.firstFlightT > 1.2 && game.firstFlightT < 1.3 && sim.bird.landings === 0) {
-          ui.hint(game.input === 'mic' ? (mic.pitchMode ? 'Higher squeak = higher & faster. Go quiet to drop onto an island!' : 'Louder = higher & faster. Go quiet to drop onto an island!') : 'Release to drop onto an island!', 3.5);
+          ui.hint(tr(game.input === 'mic' ? (mic.pitchMode ? 'hint.flyPitch' : 'hint.flyVoice') : 'hint.flyTouch'), 3.5);
         }
       }
       break;
@@ -5605,7 +6577,7 @@ function frame(now) {
     showMeter: inGame || game.mode === 'calibrating',
     level: game.level,
     best: game.best,
-    inputLabel: game.input === 'mic' ? (mic.on ? 'MIC' : 'OFF') : 'TAP',
+    inputLabel: tr(game.input === 'mic' ? (mic.on ? 'hud.mic' : 'hud.micOff') : 'hud.touch'),
     pitchIcon: game.input === 'mic' && mic.pitchMode,
     inputOk: game.input !== 'mic' || mic.on,
     tooLow: game.input === 'mic' && mic.pitchMode && mic.tooLow > 0.25,

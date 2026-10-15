@@ -13,12 +13,22 @@ const G = {
   '!': '010010010000010', '+': '000010111010000', '-': '000000111000000', '.': '000000000000010',
   ':': '000010000010000', '/': '001001010100100', '?': '111001011000010', ' ': '000000000000000',
   "'": '010010000000000', 'x': '000101010101000',
+  // Spanish / Catalan
+  'Ñ': '111000111101101', '¡': '010000010010010', '¿': '010000010100111', '·': '000000010000000',
+  ',': '000000000010100',
 };
+
+/** Capitals without accents (the font has no accented letters), keeping Ñ. */
+export function plainText(str) {
+  return String(str).toUpperCase().normalize('NFD')
+    .replace(/N\u0303/g, 'Ñ').replace(/[\u0300-\u036f]/g, '').replace(/[’‘]/g, "'");
+}
 
 const cache = new Map();
 
 /** Measures text width in logical pixels at the given scale. */
 export function textWidth(str, scale = 1) {
+  str = plainText(str);
   return str.length ? (str.length * 4 - 1) * scale : 0;
 }
 
@@ -40,7 +50,7 @@ function glyphCanvas(ch, color) {
  * Draws text with an optional 1px outline/shadow. align: 'left' | 'center' | 'right'.
  */
 export function drawText(ctx, str, x, y, { scale = 1, color = '#fff', outline = null, shadow = null, align = 'left' } = {}) {
-  str = String(str).toUpperCase();
+  str = plainText(str);
   const w = textWidth(str, scale);
   let x0 = Math.round(align === 'center' ? x - w / 2 : align === 'right' ? x - w : x);
   y = Math.round(y);

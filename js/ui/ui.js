@@ -1,6 +1,7 @@
 // DOM menus and overlays. Holds no game logic: it shows screens and forwards
 // button presses to the handlers main.js provides.
 import { drawText } from '../render/pixelfont.js';
+import { t as tr, pick, getLanguage } from '../i18n/i18n.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -9,56 +10,7 @@ const SCREENS = ['menu', 'permission', 'calib', 'micError', 'pause', 'results', 
 const MUTE_ON_SVG = '<svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="1" y="3" width="2" height="2"/><rect x="3" y="2" width="1" height="4"/><rect x="4" y="1" width="1" height="6"/><rect x="6" y="2" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="7" y="3" width="1" height="2"/></svg>';
 const MUTE_OFF_SVG = '<svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="1" y="3" width="2" height="2"/><rect x="3" y="2" width="1" height="4"/><rect x="4" y="1" width="1" height="6"/><rect x="5" y="2" width="1" height="1"/><rect x="7" y="2" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="5" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/></svg>';
 
-const QUIPS = {
-  water: [
-    'He’s fine. Just a little damp.',
-    'Splash! The river says hi.',
-    'Short flight. Long bath.',
-    'Kakapo are flightless. You nearly proved otherwise.',
-  ],
-  ceiling: [
-    'Three bonks on the canopy. The canopy won.',
-    'Aim for the islands, not the treetops.',
-    'Big voice, tiny wings, sore head.',
-  ],
-  underside: [
-    'Islands are for landing on. From above.',
-    'He tried to go through. Islands disagree.',
-  ],
-  shark: [
-    'Sharks love a snack that announces itself.',
-    'The fin was the warning. The chomp was the punchline.',
-  ],
-  wave: [
-    'Surf’s up. Kakapo’s down.',
-    'Wait for the river to calm down next time.',
-  ],
-  spout: [
-    'Whoosh! He’s gone to see the clouds. Briefly.',
-    'Waterspouts come and go. Wait for the “go”.',
-  ],
-  eel: [
-    'The eel was hungrier than he was.',
-    'Bubbles in the river? Wait for the snap.',
-  ],
-  falcon: [
-    'Kārearea: 1. Kākāpō: 0.',
-    'Real kākāpō freeze when a falcon hunts. Try resting next time.',
-  ],
-  fire: [
-    'Lightly toasted kakapo.',
-    'Burning islands are for flying over, not landing on.',
-  ],
-  fall: [
-    'Gravity: 1. Kakapo: 0.',
-    'Next time, brake with a little “mmm” before landing.',
-    'He’ll walk it off. Eventually.',
-  ],
-};
-const TITLES = {
-  water: 'SPLASH!', ceiling: 'BONK!', underside: 'OUCH!', fall: 'SPLAT!',
-  shark: 'CHOMP!', wave: 'WIPEOUT!', spout: 'WHOOSH!', fire: 'TOASTED!', eel: 'SNAP!', falcon: 'SNATCHED!',
-};
+const DEATHS = ['water', 'ceiling', 'underside', 'shark', 'wave', 'spout', 'eel', 'falcon', 'fire', 'fall'];
 
 export class UI {
   constructor(handlers) {
@@ -90,6 +42,9 @@ export class UI {
     bind('btnSetVibrate', () => this.h.toggleVibrate());
     bind('btnSetSound', () => this.h.toggleMute());
     bind('btnSetBack', () => this.h.toMenu());
+    for (const b of document.querySelectorAll('.lang-btn')) {
+      b.addEventListener('click', (e) => { e.preventDefault(); this.h.setLanguage(b.dataset.lang); });
+    }
     bind('btnShare', () => this.h.shareVideo());
     bind('btnSave', () => this.h.saveVideo());
     this._drawTitle();
@@ -118,58 +73,64 @@ export class UI {
     for (const id of ['btnMuteHud']) {
       const b = $(id);
       b.innerHTML = m ? MUTE_OFF_SVG : MUTE_ON_SVG;
-      b.setAttribute('aria-label', m ? 'Unmute sound effects' : 'Mute sound effects');
+      b.setAttribute('aria-label', tr(m ? 'hud.unmuteAria' : 'hud.muteAria'));
       b.setAttribute('aria-pressed', String(m));
     }
   }
 
   setMicStatus(mode, mic) {
     const chip = $('micChip');
-    let text = 'Mic: not enabled yet';
+    let key = 'micChip.notYet';
     let cls = '';
-    if (mode === 'touch' && !mic.on) { text = 'Touch mode'; }
-    if (mic.status === 'requesting') text = 'Mic: waiting for permission…';
-    else if (mic.on) { text = 'Mic: on'; cls = 'ok'; }
-    else if (mic.status === 'denied') { text = 'Mic: blocked'; cls = 'bad'; }
-    else if (mic.status === 'unavailable' || mic.status === 'insecure' || mic.status === 'error') { text = 'Mic: unavailable'; cls = 'bad'; }
-    else if (mic.status === 'lost') { text = 'Mic: disconnected'; cls = 'bad'; }
-    chip.textContent = text;
+    if (mode === 'touch' && !mic.on) { key = 'micChip.touch'; }
+    if (mic.status === 'requesting') key = 'micChip.requesting';
+    else if (mic.on) { key = 'micChip.on'; cls = 'ok'; }
+    else if (mic.status === 'denied') { key = 'micChip.blocked'; cls = 'bad'; }
+    else if (mic.status === 'unavailable' || mic.status === 'insecure' || mic.status === 'error') { key = 'micChip.unavailable'; cls = 'bad'; }
+    else if (mic.status === 'lost') { key = 'micChip.lost'; cls = 'bad'; }
+    chip.textContent = tr(key);
     chip.className = 'chip ' + cls;
-    $('btnPlay').textContent = 'Play';
+    $('btnPlay').textContent = tr('menu.play');
   }
 
   /** Settings screen state. */
   setSettings(cam, recorder, muted, mic, micNote, haptics) {
     if (mic) {
-      const label = mic.on ? (mic.deviceLabel || 'default') : 'not on yet';
-      $('btnSetMic').textContent = `Microphone: ${label.length > 26 ? label.slice(0, 25) + '…' : label}`;
+      const label = mic.on ? (mic.deviceLabel || tr('settings.micDefault')) : tr('settings.micNotOn');
+      $('btnSetMic').textContent = tr('settings.mic', { label: label.length > 26 ? label.slice(0, 25) + '…' : label });
       $('btnSetMic').disabled = !mic.on;
-      $('micNote').textContent = micNote || (mic.on ? 'Tap to switch (e.g. AirPods ↔ phone mic).' : 'Start a game to choose a microphone.');
+      $('micNote').textContent = micNote || tr(mic.on ? 'settings.micNoteOn' : 'settings.micNoteOff');
     }
     const camOn = cam.wanted;
     const cb = $('btnSetCamera');
-    cb.textContent = `Camera background: ${camOn ? 'ON' : 'OFF'}`;
+    const onOff = (v) => tr(v ? 'settings.on' : 'settings.off');
+    cb.textContent = tr('settings.camera', { state: onOff(camOn) });
     cb.setAttribute('aria-pressed', String(camOn));
     const note = {
-      requesting: 'Waiting for camera permission…',
-      denied: 'The camera is blocked for this site. Allow it in the browser settings.',
-      unavailable: 'No camera found on this device.',
-      insecure: 'The camera needs https (or localhost).',
+      requesting: tr('cam.requesting'),
+      denied: tr('cam.denied'),
+      unavailable: tr('cam.unavailable'),
+      insecure: tr('cam.insecure'),
       error: cam.error,
     }[cam.status];
-    $('camNote').textContent = note || (camOn ? 'Your face is the sky. Only shown on this screen.' : 'The normal sky is shown instead.');
+    $('camNote').textContent = note || tr(camOn ? 'cam.noteOn' : 'cam.noteOff');
     const rb = $('btnSetRecord');
-    rb.textContent = recorder.supported ? `Save a video of each run: ${recorder.enabled ? 'ON' : 'OFF'}` : 'Video: not supported in this browser';
+    rb.textContent = recorder.supported ? tr('settings.record', { state: onOff(recorder.enabled) }) : tr('settings.recordUnsupported');
     rb.disabled = !recorder.supported;
     rb.setAttribute('aria-pressed', String(recorder.supported && recorder.enabled));
     const sb = $('btnSetSound');
-    sb.textContent = `Sound effects: ${muted ? 'OFF' : 'ON'}`;
+    sb.textContent = tr('settings.sound', { state: onOff(!muted) });
     sb.setAttribute('aria-pressed', String(!muted));
     const vb = $('btnSetVibrate');
     vb.classList.toggle('hidden', !(haptics && haptics.supported)); // iPhone Safari can't vibrate
     if (haptics) {
-      vb.textContent = `Vibration: ${haptics.enabled ? 'ON' : 'OFF'}`;
+      vb.textContent = tr('settings.vibrate', { state: onOff(haptics.enabled) });
       vb.setAttribute('aria-pressed', String(haptics.enabled));
+    }
+    for (const b of document.querySelectorAll('.lang-btn')) {
+      const on = b.dataset.lang === getLanguage();
+      b.classList.toggle('selected', on);
+      b.setAttribute('aria-pressed', String(on));
     }
   }
 
@@ -184,30 +145,32 @@ export class UI {
     if (state === 'ready') {
       if (v.src !== url) { v.src = url; v.play().catch(() => {}); }
       v.classList.remove('hidden');
-      note.textContent = canShare ? 'Your run — share the embarrassment!' : 'Your run — save it and share it anywhere.';
+      note.textContent = tr(canShare ? 'res.videoShare' : 'res.videoSave');
     } else {
       v.removeAttribute('src');
       v.load();
       v.classList.add('hidden');
-      note.textContent = state === 'reaction' ? `● REC — still recording your reaction… ${secondsLeft}`
-        : state === 'preparing' ? 'Preparing your video…' : state === 'failed' ? 'The video could not be saved this time.' : '';
+      note.textContent = state === 'reaction' ? tr('res.recording', { n: secondsLeft })
+        : state === 'preparing' ? tr('res.preparing') : state === 'failed' ? tr('res.failed') : '';
       note.classList.toggle('rec', state === 'reaction');
     }
   }
 
+  videoNote(text) {
+    $('resVideoNote').textContent = text;
+  }
+
   setBest(best) {
-    $('menuBest').textContent = best > 0 ? `Best: ${best}` : '';
+    $('menuBest').textContent = best > 0 ? tr('menu.best', { n: best }) : '';
   }
 
   showMicError(mic) {
-    $('micErrorText').textContent = mic.error || 'The microphone is not available.';
-    let help = 'You can still play with touch: press and hold to fly, release to fall.';
+    $('micErrorText').textContent = mic.error || tr('micErr.default');
+    let help = tr('micErr.helpTouch');
     if (mic.status === 'denied') {
-      help = window.top !== window.self
-        ? 'This page is embedded and the microphone is blocked here. To play with your voice, open KAKAPO on its own https site. ' + help
-        : 'To use your voice, allow the microphone for this site in your browser settings, then tap “Try again”. ' + help;
+      help = tr(window.top !== window.self ? 'micErr.helpEmbedded' : 'micErr.helpDenied') + ' ' + help;
     }
-    if (mic.status === 'insecure') help = 'Open the game over https:// (or localhost). ' + help;
+    if (mic.status === 'insecure') help = tr('micErr.helpInsecure') + ' ' + help;
     $('micErrorHelp').textContent = help;
     $('btnRetryMic').classList.toggle('hidden', mic.status === 'unavailable' || mic.status === 'insecure');
     this.show('micError');
@@ -264,7 +227,7 @@ export class UI {
   }
 
   resultTitle(cause) {
-    return TITLES[cause] || TITLES.water;
+    return tr('title.' + (DEATHS.includes(cause) ? cause : 'water'));
   }
 
   showResults(r) {
@@ -274,12 +237,9 @@ export class UI {
     $('resBerries').textContent = r.berries;
     $('resBest').textContent = r.best;
     $('resNewBest').classList.toggle('hidden', !r.newBest);
-    const cause = QUIPS[r.cause] ? r.cause : 'water';
-    const quips = QUIPS[cause];
-    $('resTitle').textContent = r.newBest ? 'NEW RECORD!' : TITLES[cause];
-    $('resQuip').textContent = r.metres < 15 && cause === 'water'
-      ? 'Tip: keep making noise to fly, go quiet to land.'
-      : quips[(Math.random() * quips.length) | 0];
+    const cause = DEATHS.includes(r.cause) ? r.cause : 'water';
+    $('resTitle').textContent = r.newBest ? tr('title.newRecord') : tr('title.' + cause);
+    $('resQuip').textContent = r.metres < 15 && cause === 'water' ? tr('res.tipFirst') : pick('quips.' + cause);
     this.show('results');
   }
 }

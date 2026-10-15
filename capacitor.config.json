@@ -1,0 +1,10 @@
+{
+  "appId": "com.kakapo.game",
+  "appName": "KAKAPO",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

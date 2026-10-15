@@ -254,6 +254,33 @@ def main():
             print(f'     headless frame rate: ~{fps} fps')
             check(not errors, f'no page errors ({errors[:3]})')
             ctx.close(); b.close()
+
+            print('4. languages: browser language, Settings choice remembered')
+            b = p.chromium.launch()
+            for loc, play, title in (('es-ES', 'Jugar', 'Ajustes'), ('ca-ES', 'Juga', 'Configuració'), ('de-DE', 'Play', 'Settings')):
+                ctx = b.new_context(**PHONE, locale=loc)
+                pg = ctx.new_page(); pg.goto(URL); time.sleep(0.4)
+                check(pg.inner_text('#btnPlay') == play and pg.inner_text('#btnSettings') == title,
+                      f"{loc} browser → {play} / {title} ({pg.inner_text('#btnPlay')} / {pg.inner_text('#btnSettings')})")
+                ctx.close()
+            ctx = b.new_context(**PHONE, locale='es-ES')
+            pg = ctx.new_page(); errors = []
+            pg.on('pageerror', lambda e: errors.append(str(e)))
+            pg.goto(URL); time.sleep(0.4)
+            pg.tap('#btnSettings'); time.sleep(0.2)
+            check('selected' in pg.get_attribute('.lang-btn[data-lang="es"]', 'class'), 'Settings shows Español selected')
+            pg.tap('.lang-btn[data-lang="ca"]'); time.sleep(0.2)
+            check(pg.inner_text('#settings h2') == 'Configuració' and 'Càmera' in pg.inner_text('#btnSetCamera'),
+                  f"switching to Català updates Settings at once ({pg.inner_text('#btnSetCamera')})")
+            pg.screenshot(path=os.path.join(TMP, 'kakapo-e2e-settings-ca.png'))
+            pg.reload(); time.sleep(0.4)
+            check(pg.inner_text('#btnPlay') == 'Juga' and pg.evaluate('document.documentElement.lang') == 'ca',
+                  'the choice is remembered over the browser language (Spanish browser, Catalan game)')
+            pg.tap('#btnTouchMode'); time.sleep(1.2)
+            hint = pg.inner_text('#hint')
+            check(any(w in hint for w in ('Mantén premut', 'Sense càmera', 'Càmera bloquejada')), f"in-game hint in Catalan ({hint})")
+            check(not errors, f'no page errors ({errors[:3]})')
+            ctx.close(); b.close()
     finally:
         server.terminate()
     print('\n' + ('ALL E2E CHECKS PASSED' if not failures else f'{len(failures)} FAILED: {failures}'))

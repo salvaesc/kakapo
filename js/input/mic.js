@@ -5,6 +5,7 @@ import {
   createPitchWork, detectPitch, pitchToLevel, computePitchCalibration,
 } from './micMath.js';
 import { load, save } from '../core/storage.js';
+import { t as tr } from '../i18n/i18n.js';
 
 export class Mic {
   constructor(config) {
@@ -32,12 +33,13 @@ export class Mic {
     // Remembered calibration lets a returning player skip straight to play
     // (older, volume-only calibrations are ignored in pitch mode).
     const stored = load('calibration', null);
-    const usable = stored && (!this.pitchMode || stored.version === 2);
+    // (a calibration saved by the short-lived fixed-loudness test version is ignored too)
+    const usable = stored && !stored.fixed && (!this.pitchMode || stored.version === 2);
     this.cal = usable ? stored : defaultCalibration(this.cfg);
     this.calibrated = !!usable;
     this._onEnded = () => {
       this.status = 'lost';
-      this.error = 'The microphone stopped (another app may have taken it).';
+      this.error = tr('mic.errStopped');
       this.level = 0;
       if (this.onStatus) this.onStatus(this.status);
     };
@@ -90,13 +92,13 @@ export class Mic {
     this.error = '';
     if (typeof window !== 'undefined' && window.isSecureContext === false) {
       this.status = 'insecure';
-      this.error = 'Microphone needs a secure page (https:// or localhost).';
+      this.error = tr('mic.errInsecure');
       return this.status;
     }
     const md = typeof navigator !== 'undefined' ? navigator.mediaDevices : null;
     if (!md || !md.getUserMedia || !getAudioContext()) {
       this.status = 'unavailable';
-      this.error = 'This browser does not support microphone input.';
+      this.error = tr('mic.errUnsupported');
       return this.status;
     }
     this.status = 'requesting';
@@ -108,13 +110,13 @@ export class Mic {
       const name = e && e.name;
       if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
         this.status = 'denied';
-        this.error = 'Microphone permission was denied. You can allow it in the browser’s site settings.';
+        this.error = tr('mic.errDenied');
       } else if (name === 'NotFoundError' || name === 'OverconstrainedError' || name === 'DevicesNotFoundError') {
         this.status = 'unavailable';
-        this.error = 'No microphone was found on this device.';
+        this.error = tr('mic.errNotFound');
       } else {
         this.status = 'error';
-        this.error = `The microphone could not start (${name || 'unknown error'}).`;
+        this.error = tr('mic.errStart', { name: name || tr('common.unknownError') });
       }
       return this.status;
     }
@@ -147,7 +149,7 @@ export class Mic {
     } catch (e) {
       this.stop();
       this.status = 'error';
-      this.error = 'Audio processing could not start on this browser.';
+      this.error = tr('mic.errAudio');
     }
     return this.status;
   }

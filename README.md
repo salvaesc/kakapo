@@ -214,6 +214,32 @@ Recording quietly continues for **5 seconds after the kakapo dies** (`recording.
 
 Format: MP4 where the browser can (Safari, recent Chrome), otherwise WebM. Some social apps don't accept WebM; Safari/iOS and current Android Chrome produce MP4 with H.264.
 
+## Languages
+
+The game speaks **Spanish (Spain), Catalan and English**. Every text the player can see lives in one literals file per language: `js/i18n/en.js` (the reference), `js/i18n/es.js` and `js/i18n/ca.js` — same keys in each, `{name}` placeholders filled in by the game, lists for the random results jokes. `js/i18n/i18n.js` picks the language and fills the page (`data-i18n` attributes in `index.html`; `tr('key')` in the code).
+
+- **First visit:** the browser's language decides — Catalan → Català, Spanish (and Galician, Basque, Asturian) → Español, anything else → English.
+- **Settings → Español · Català · English** changes it at once and is remembered as the default from then on, over the browser language.
+- Texts drawn with the pixel font (pop-ups, HUD, the score card in the video) are shown in capitals without accents; the font has Ñ, ¡, ¿ and ·.
+- Adding a language: copy `en.js`, translate the values, and add it to `LANGS` (and a button in Settings). `tests/i18n.test.mjs` checks that every language has exactly the same keys and placeholders, and that pixel-font texts only use letters the font can draw.
+
+## Android app (APK)
+
+The game is also packaged as an Android app with [Capacitor](https://capacitorjs.com) 7: a native shell with a WebView that runs the same game (`www/index.html`, the single-file build).
+
+**Build the APK on Windows:** double-click **`build-apk.bat`**. It needs Node.js and Android Studio (opened at least once, so it has downloaded the Android SDK). It installs Capacitor (`npm install`, first time only), copies the latest game into the app, builds with Gradle and leaves **`KAKAPO.apk`** in this folder. The first build downloads Gradle and the Android libraries (a few minutes). Copy the APK to the phone and open it; Android asks to allow installing apps from that source.
+
+Or in Android Studio: `npx cap sync android`, then open the `android/` folder and use *Build → Build App Bundle(s) / APK(s) → Build APK(s)*.
+
+What the app adds over the web version:
+- Permissions for the microphone, camera and vibration (`android/app/src/main/AndroidManifest.xml`); Android asks for them the first time you tap *Allow mic & camera*. Portrait only.
+- **Share video** opens Android's share sheet (WhatsApp, Instagram, TikTok…) and **Save video** writes it to *Documents/KAKAPO* — WebViews have no Web Share API or downloads, so `js/platform/native.js` uses the Capacitor Filesystem and Share plugins. In a browser that file does nothing.
+- Pixel-kakapo launcher icon and splash screen.
+
+After changing the game, run `npm run android:sync` (or just `build-apk.bat` again). App id: `com.kakapo.game` (`capacitor.config.json`). The APK is a debug build, fine for installing on your own phones; publishing on Google Play needs a signed release build (`gradlew bundleRelease` with your own key).
+
+Not verified yet (no Android SDK in the environment where this was made): the Gradle build itself and the app on a real phone — microphone/camera permissions in the WebView, MP4 vs WebM recording, share and save.
+
 ## Known limitations
 
 - One biome (native forest). `biomes/index.js` is the slot for coast, alpine and fjords.

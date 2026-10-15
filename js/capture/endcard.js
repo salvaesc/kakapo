@@ -2,6 +2,7 @@
 // receives the clip on WhatsApp knows how it went. Drawn only on the recording canvas
 // (the player sees the normal results screen).
 import { drawText, textWidth } from '../render/pixelfont.js';
+import { t as tr } from '../i18n/i18n.js';
 
 const INK = '#0d2326';
 const PANEL = '#16363a';
@@ -40,11 +41,12 @@ export function drawEndCard(ctx, w, h, card, alpha) {
   const inner = pw - 6 * u;
   const title = String(card.title || 'KAKAPO').toUpperCase();
   const score = String(card.score | 0);
-  const stats = `${card.metres | 0} M  -  BEST ${card.best | 0}`;
+  const stats = tr('end.stats', { m: card.metres | 0, best: card.best | 0 });
   const sT = fit(title, inner, 3 * u);
   const sS = fit(score, inner, 5 * u);
   const sM = fit(stats, inner, u + Math.floor(u / 2));
-  const sF = fit('SHOUT TO FLY', inner, u);
+  const tagline = tr('end.tagline');
+  const sF = fit(tagline, inner, u);
   const gap = 3 * u;
   const ph = 4 * u + 5 * sT + gap + 5 * sS + u * 2 + 5 * u + gap + 5 * sM + gap * 2 + 5 * 2 * u + u * 2 + 5 * sF + 4 * u;
   const px = Math.round((w - pw) / 2);
@@ -63,9 +65,9 @@ export function drawEndCard(ctx, w, h, card, alpha) {
   let y = py + 4 * u;
   y += centered(ctx, title, cx, y, sT, card.newBest ? GOLD : LIME) + gap;
   y += centered(ctx, score, cx, y, sS, '#ffffff') + u * 2;
-  y += centered(ctx, 'POINTS', cx, y, u, PALE) + gap;
+  y += centered(ctx, tr('end.points'), cx, y, u, PALE) + gap;
   y += centered(ctx, stats, cx, y, sM, card.newBest ? GOLD : PALE) + gap * 2;
   y += centered(ctx, 'KAKAPO', cx, y, 2 * u, LIME) + u * 2;
-  centered(ctx, 'SHOUT TO FLY', cx, y, sF, PALE);
+  centered(ctx, tagline, cx, y, sF, PALE);
   ctx.restore();
 }

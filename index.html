@@ -15,11 +15,11 @@
 <body>
   <div id="app">
     <div id="stage">
-      <canvas id="game" aria-label="KAKAPO game"></canvas>
+      <canvas id="game" aria-label="KAKAPO game" data-i18n-aria="app.canvasAria"></canvas>
 
       <!-- In-game controls -->
       <div id="hud" class="hidden">
-        <button id="btnPause" class="icon-btn" aria-label="Pause">
+        <button id="btnPause" class="icon-btn" aria-label="Pause" data-i18n-aria="hud.pauseAria">
           <svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="2" y="1" width="1.5" height="6"/><rect x="4.5" y="1" width="1.5" height="6"/></svg>
         </button>
         <button id="btnMuteHud" class="icon-btn mute-btn" aria-label="Mute sound effects"></button>
@@ -30,15 +30,15 @@
       <section id="menu" class="screen">
         <div class="menu-top">
           <canvas id="titleCanvas" class="pixel title-canvas" width="52" height="14" aria-label="KAKAPO"></canvas>
-          <p class="subtitle">a very determined parrot</p>
+          <p class="subtitle" data-i18n="menu.subtitle">a very determined parrot</p>
         </div>
         <div class="menu-mid"><canvas id="heroCanvas" class="pixel hero-canvas" width="40" height="34" aria-hidden="true"></canvas></div>
         <div class="panel menu-panel">
-          <p class="tagline">Make noise to fly.<br>Stay quiet to fall.</p>
-          <button id="btnPlay" class="btn btn-primary">Play</button>
+          <p class="tagline" data-i18n-html="menu.taglineHtml">Make noise to fly.<br>Stay quiet to fall.</p>
+          <button id="btnPlay" class="btn btn-primary" data-i18n="menu.play">Play</button>
           <div class="row links">
-            <button id="btnTouchMode" class="link-btn">Play with touch instead</button>
-            <button id="btnSettings" class="link-btn">Settings</button>
+            <button id="btnTouchMode" class="link-btn" data-i18n="menu.touch">Play with touch instead</button>
+            <button id="btnSettings" class="link-btn" data-i18n="menu.settings">Settings</button>
           </div>
           <p id="menuBest" class="best"></p>
         </div>
@@ -47,27 +47,27 @@
       <!-- Why we need the microphone -->
       <section id="permission" class="screen hidden">
         <div class="panel">
-          <h2>You are the controller</h2>
-          <p><b>Your voice</b> flies the kakapo: the louder your “aaah”, the higher and faster he goes; softer is slower. Silence lets him drop.</p>
-          <p><b>Your face</b> is the sky: the front camera becomes the background, and each run is saved as a short video you can share if you want.</p>
-          <p class="small">Everything stays on this device unless you tap Share. Your browser will ask for the microphone and the camera next. You can turn the camera off in Settings.</p>
-          <button id="btnAllowMic" class="btn btn-primary">Allow mic &amp; camera</button>
-          <button id="btnPermTouch" class="btn btn-secondary">Use touch instead</button>
-          <button id="btnPermBack" class="link-btn">Back</button>
+          <h2 data-i18n="perm.title">You are the controller</h2>
+          <p data-i18n-html="perm.voiceHtml"><b>Your voice</b> flies the kakapo: the louder your “aaah”, the higher and faster he goes; softer is slower. Silence lets him drop.</p>
+          <p data-i18n-html="perm.faceHtml"><b>Your face</b> is the sky: the front camera becomes the background, and each run is saved as a short video you can share if you want.</p>
+          <p class="small" data-i18n="perm.privacy">Everything stays on this device unless you tap Share. Your browser will ask for the microphone and the camera next. You can turn the camera off in Settings.</p>
+          <button id="btnAllowMic" class="btn btn-primary" data-i18n="perm.allow">Allow mic &amp; camera</button>
+          <button id="btnPermTouch" class="btn btn-secondary" data-i18n="perm.touch">Use touch instead</button>
+          <button id="btnPermBack" class="link-btn" data-i18n="common.back">Back</button>
         </div>
       </section>
 
       <!-- Calibration -->
       <section id="calib" class="screen hidden">
         <div class="panel calib-panel">
-          <ol class="calib-steps" aria-label="Steps">
-            <li id="cs1">Quiet</li><li id="cs2">Normal</li><li id="cs3">Squeak</li><li id="cs4">Try it</li>
+          <ol class="calib-steps" aria-label="Steps" data-i18n-aria="calib.stepsAria">
+            <li id="cs1" data-i18n="calib.step.quiet">Quiet</li><li id="cs2">Normal</li><li id="cs3" data-i18n="calib.step.squeak">Squeak</li><li id="cs4" data-i18n="calib.step.try">Try it</li>
           </ol>
-          <h2 id="calibTitle">Tune to your voice</h2>
+          <h2 id="calibTitle" data-i18n="calib.defaultTitle">Tune to your voice</h2>
           <p id="calibText"></p>
           <div id="calibViz" class="calib-viz">
-            <div class="viz-row"><span class="viz-label">Hearing</span><div class="meter"><div id="calibMeter" class="meter-fill"></div></div></div>
-            <div class="viz-row" id="pitchRow"><span class="viz-label">Pitch</span>
+            <div class="viz-row"><span class="viz-label" data-i18n="calib.hearing">Hearing</span><div class="meter"><div id="calibMeter" class="meter-fill"></div></div></div>
+            <div class="viz-row" id="pitchRow"><span class="viz-label" data-i18n="calib.pitch">Pitch</span>
               <div class="pitchbar"><div id="pitchZone" class="pitch-zone"></div><div id="pitchNormal" class="pitch-mark normal"></div><div id="pitchNow" class="pitch-mark now"></div></div>
             </div>
           </div>
@@ -75,26 +75,29 @@
           <div class="progress" aria-hidden="true"><div id="calibProgress" class="progress-fill"></div></div>
           <p class="small" id="calibNote"></p>
           <button id="btnCalibGo" class="btn btn-primary">Start</button>
-          <button id="btnCalibSkip" class="link-btn">Skip — use standard settings</button>
+          <button id="btnCalibSkip" class="link-btn" data-i18n="calib.skip">Skip — use standard settings</button>
         </div>
       </section>
 
       <!-- Microphone error / fallback -->
       <section id="micError" class="screen hidden">
         <div class="panel">
-          <h2>No microphone</h2>
+          <h2 data-i18n="micErr.title">No microphone</h2>
           <p id="micErrorText"></p>
           <p class="small" id="micErrorHelp"></p>
-          <button id="btnRetryMic" class="btn btn-secondary">Try again</button>
-          <button id="btnErrTouch" class="btn btn-primary">Play with touch</button>
-          <button id="btnErrBack" class="link-btn">Back to menu</button>
+          <button id="btnRetryMic" class="btn btn-secondary" data-i18n="micErr.retry">Try again</button>
+          <button id="btnErrTouch" class="btn btn-primary" data-i18n="micErr.touch">Play with touch</button>
+          <button id="btnErrBack" class="link-btn" data-i18n="micErr.back">Back to menu</button>
         </div>
       </section>
 
       <!-- Settings -->
       <section id="settings" class="screen hidden">
         <div class="panel">
-          <h2>Settings</h2>
+          <h2 data-i18n="settings.title">Settings</h2>
+          <div class="lang-row" role="group" aria-label="Language" data-i18n-aria="settings.language">
+            <button class="btn btn-secondary lang-btn" data-lang="es">Español</button><button class="btn btn-secondary lang-btn" data-lang="ca">Català</button><button class="btn btn-secondary lang-btn" data-lang="en">English</button>
+          </div>
           <p class="row"><span id="micChip" class="chip" role="status">Mic: not enabled yet</span></p>
           <button id="btnSetCamera" class="btn btn-secondary toggle" aria-pressed="true">Camera background: ON</button>
           <p id="camNote" class="small"></p>
@@ -103,17 +106,17 @@
           <button id="btnSetVibrate" class="btn btn-secondary toggle hidden" aria-pressed="true">Vibration: ON</button>
           <button id="btnSetMic" class="btn btn-secondary">Microphone: default</button>
           <p id="micNote" class="small"></p>
-          <button id="btnRecalibrate" class="btn btn-secondary">Recalibrate voice</button>
-          <button id="btnSetBack" class="btn btn-primary">Done</button>
+          <button id="btnRecalibrate" class="btn btn-secondary" data-i18n="settings.recalibrate">Recalibrate voice</button>
+          <button id="btnSetBack" class="btn btn-primary" data-i18n="settings.done">Done</button>
         </div>
       </section>
 
       <!-- Pause -->
       <section id="pause" class="screen hidden">
         <div class="panel">
-          <h2>Paused</h2>
-          <button id="btnResume" class="btn btn-primary">Resume</button>
-          <button id="btnPauseMenu" class="btn btn-secondary">Menu</button>
+          <h2 data-i18n="pause.title">Paused</h2>
+          <button id="btnResume" class="btn btn-primary" data-i18n="pause.resume">Resume</button>
+          <button id="btnPauseMenu" class="btn btn-secondary" data-i18n="pause.menu">Menu</button>
         </div>
       </section>
 
@@ -122,27 +125,27 @@
         <div class="panel results-panel">
           <h2 id="resTitle">SPLASH!</h2>
           <p id="resQuip" class="quip"></p>
-          <div class="score-big"><span id="resScore">0</span><span id="resNewBest" class="new-best hidden">NEW BEST!</span></div>
+          <div class="score-big"><span id="resScore">0</span><span id="resNewBest" class="new-best hidden" data-i18n="res.newBest">NEW BEST!</span></div>
           <div id="resVideoBox" class="res-video hidden">
             <video id="resVideo" muted loop playsinline autoplay></video>
             <p id="resVideoNote" class="small">Preparing your video…</p>
             <div class="row res-video-btns">
-              <button id="btnShare" class="btn btn-primary hidden">Share video</button>
-              <button id="btnSave" class="btn btn-secondary hidden">Save video</button>
+              <button id="btnShare" class="btn btn-primary hidden" data-i18n="res.share">Share video</button>
+              <button id="btnSave" class="btn btn-secondary hidden" data-i18n="res.save">Save video</button>
             </div>
           </div>
           <dl class="stats">
-            <div><dt>Distance</dt><dd id="resDist">0 m</dd></div>
-            <div><dt>Landings</dt><dd id="resLand">0</dd></div>
-            <div><dt>Berries</dt><dd id="resBerries">0</dd></div>
-            <div><dt>Best</dt><dd id="resBest">0</dd></div>
+            <div><dt data-i18n="res.distance">Distance</dt><dd id="resDist">0 m</dd></div>
+            <div><dt data-i18n="res.landings">Landings</dt><dd id="resLand">0</dd></div>
+            <div><dt data-i18n="res.berries">Berries</dt><dd id="resBerries">0</dd></div>
+            <div><dt data-i18n="res.best">Best</dt><dd id="resBest">0</dd></div>
           </dl>
-          <button id="btnAgain" class="btn btn-primary btn-again">Fly again</button>
-          <button id="btnResMenu" class="link-btn">Menu</button>
+          <button id="btnAgain" class="btn btn-primary btn-again" data-i18n="res.again">Fly again</button>
+          <button id="btnResMenu" class="link-btn" data-i18n="res.menu">Menu</button>
         </div>
       </section>
 
-      <noscript><div class="screen"><div class="panel"><p>KAKAPO needs JavaScript.</p></div></div></noscript>
+      <noscript><div class="screen"><div class="panel"><p>KAKAPO needs JavaScript. · KAKAPO necesita JavaScript. · KAKAPO necessita JavaScript.</p></div></div></noscript>
     </div>
   </div>
   <script type="module" src="js/main.js"></script>

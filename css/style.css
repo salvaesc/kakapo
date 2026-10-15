@@ -281,3 +281,12 @@ button { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .hint, .new-best { animation: none; }
 }
+
+/* Settings: language picker (Español · Català · English) */
+.lang-row { display: flex; gap: 8px; width: 100%; margin: 2px 0 4px; }
+.lang-row .lang-btn { flex: 1; min-width: 0; padding-left: 4px; padding-right: 4px; font-size: 0.95em; }
+.lang-row .lang-btn.selected {
+  background: var(--lime);
+  color: var(--ink);
+  box-shadow: 0 0 0 var(--px) var(--ink), inset 0 var(--px) 0 var(--lime-hi), inset 0 calc(-2 * var(--px)) 0 var(--lime-lo);
+}
